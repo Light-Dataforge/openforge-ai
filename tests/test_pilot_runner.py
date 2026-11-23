@@ -148,6 +148,22 @@ class PilotTests(unittest.TestCase):
             )
         loader.assert_called_once_with(allow_download=True, device="cuda")
 
+    def test_token_cap_matches_adapter_before_output_or_loading(self):
+        for maximum in [True, 0, 129, 256, 1.5]:
+            with (
+                self.subTest(maximum=maximum),
+                patch(
+                    "apps.baseline.runner._default_adapter",
+                    side_effect=AssertionError("must not load"),
+                ),
+            ):
+                with self.assertRaises(ValueError):
+                    run_pilot(self.manifest, self.output, max_new_tokens=maximum)
+                self.assertFalse(self.output.exists())
+        fake = FakeAdapter()
+        run_pilot(self.manifest, self.output, adapter=fake, max_new_tokens=128)
+        self.assertEqual(fake.calls[0][2], 128)
+
     def test_invalid_adapter_output_is_a_retained_failure(self):
         fake = FakeAdapter()
         with patch.object(fake, "answer", return_value=""):

@@ -49,7 +49,7 @@ retained as a model_load failure; no task silently disappears. Explicit
 --allow-download permits only the adapter's documented model artifact download.
 --device cuda selects already available CUDA hardware; it does not allocate any
 cloud resource or paid endpoint. The runner supplies a 64-token generation cap by
-default (configurable 1–256).
+default (configurable 1–128).
 
 For a future user-managed Kaggle Free session, this is prepared code only. No
 Kaggle account, notebook session, allocation or inference run has been established

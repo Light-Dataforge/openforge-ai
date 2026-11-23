@@ -188,8 +188,8 @@ def run_pilot(
         raise ValueError("run flags must be booleans")
     if not isinstance(device, str) or device not in {"cpu", "cuda"}:
         raise ValueError("device must be cpu or cuda")
-    if type(max_new_tokens) is not int or not 1 <= max_new_tokens <= 256:
-        raise ValueError("max_new_tokens must be an integer from 1 to 256")
+    if type(max_new_tokens) is not int or not 1 <= max_new_tokens <= 128:
+        raise ValueError("max_new_tokens must be an integer from 1 to 128")
     cases, manifest_hash = load_cases(manifest)
     output = Path(output_dir)
     output.mkdir(mode=0o700, exist_ok=False)
