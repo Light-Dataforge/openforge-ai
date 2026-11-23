@@ -2,7 +2,8 @@
 
 Early research foundation for reliable multimodal reasoning agents.
 Implemented today: an offline exact-answer evaluator with strict JSONL contracts,
-explicit abstention accounting, conditional Brier score and SHA-256 provenance.
+explicit abstention accounting, conditional Brier score, SHA-256 provenance,
+and versioned experiment-manifest validation.
 No model inference, image processing, agent execution or training is implemented.
 No model-quality claims or benchmark improvements are made.
 
@@ -12,6 +13,7 @@ Python 3.12+; no dependencies, network, credentials or GPU required. From this d
 
 ```sh
 python3 -m core.evaluation examples/references.jsonl examples/predictions.jsonl
+python3 -m core.experiments examples/synthetic-manifest.json examples/references.jsonl examples/predictions.jsonl
 python3 -m unittest discover -s tests -v
 ```
 
@@ -44,9 +46,10 @@ as validation and metric semantics. CI checks Python 3.12–3.14; consult the cu
 checks for execution results. Future components will be added when implemented, rather than
 creating empty model, service, dashboard and infrastructure directories now.
 
-See [architecture](docs/architecture.md), [research](docs/research.md),
+See [experiment manifests](docs/experiment-manifests.md),
+[architecture](docs/architecture.md), [research](docs/research.md),
 [governance](docs/governance.md), [contributing](CONTRIBUTING.md) and
-[security](SECURITY.md). Initial roadmap: validate experiment metadata; integrate
+[security](SECURITY.md). Initial roadmap: review experiment contracts; integrate
 one licensed VLM; establish a pinned baseline; compare budget-matched verification;
 then add permission-scoped tools and a research dashboard.
 

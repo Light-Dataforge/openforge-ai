@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "run_kind": "synthetic",
+  "model": null,
+  "dataset": {
+    "id": "openforge/synthetic-evaluation-fixtures",
+    "revision": "a5226de5d676b7d2b96d6282937594d1ac5abb542795d967b0eeacaef14b4d84",
+    "license": "MIT"
+  },
+  "inputs": {
+    "reference_sha256": "a5226de5d676b7d2b96d6282937594d1ac5abb542795d967b0eeacaef14b4d84",
+    "prediction_sha256": "604ce1a9caa245fa2d3586cc0f0ce2e65d8dd1583ec9f733bd86f4901182c073"
+  },
+  "prompt": null,
+  "preprocessing": {
+    "id": "none-exact-string-v1",
+    "revision": "a5226de5d676b7d2b96d6282937594d1ac5abb542795d967b0eeacaef14b4d84"
+  },
+  "generation": null,
+  "environment": {
+    "python": "3.13.9",
+    "platform": "macOS-26.7.2-x86_64-i386-64bit-Mach-O",
+    "hardware": "Intel Core i3; 16 GiB RAM; CPU only",
+    "dependencies": {}
+  },
+  "code_revision": "9f482fe43c09b8e7874a3a3c2f64e333e85db19c"
+}

@@ -7,7 +7,7 @@
   ],
   "proposed_repository": "Light-Dataforge/openforge-ai",
   "mission": "Research reliable image-grounded reasoning agents with evidence-based verification.",
-  "status": "Equal organization owner roles verified for all three accounts; evaluation foundation prepared for PR.",
+  "status": "Evaluation foundation PR #2 passes CI; experiment-manifest validation proposed as a dependent draft PR. Independent reviews pending.",
   "architecture": [
     "core/evaluation: implemented offline evaluator",
     "core/model_adapters and multimodal: next licensed VLM and processor boundary",
@@ -46,7 +46,7 @@
         "Metric accounting, provenance, malformed input and real CLI"
       ],
       "dependencies": [],
-      "status": "Implemented locally; independent review and GitHub CI pending"
+      "status": "PR #2 passes CI on Python 3.12\u20133.14; independent review pending."
     },
     {
       "id": "OF-02",
@@ -63,7 +63,8 @@
       ],
       "dependencies": [
         "OF-01 contract review"
-      ]
+      ],
+      "status": "Implemented on dependent feature branch; 24 combined tests pass locally; review dependency remains."
     },
     {
       "id": "OF-03",
