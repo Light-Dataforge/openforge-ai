@@ -4,7 +4,9 @@ Early research foundation for reliable multimodal reasoning agents.
 Implemented today: an offline exact-answer evaluator with strict JSONL contracts,
 explicit abstention accounting, conditional Brier score, SHA-256 provenance,
 and versioned experiment-manifest validation.
-No model inference, image processing, agent execution or training is implemented.
+A combined multimodal pilot adds original PNG fixtures, a bounded raw-answer
+runner and an optional pinned local model adapter. No live model run, training or
+general agent execution is claimed.
 No model-quality claims or benchmark improvements are made.
 
 ## Run and test
@@ -62,3 +64,6 @@ MIT license applies to original code and synthetic fixtures only.
 The [zero-cost compute pilot](docs/free-compute-pilot.md) documents the pinned
 model candidate, resource limits and execution gates. It is planning only; no
 model download, inference or training is claimed.
+
+Start with the [combined multimodal pilot](docs/multimodal-pilot.md) for a fully
+model-free dry-run and the remaining gates before a real Kaggle Free model run.
