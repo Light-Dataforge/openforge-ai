@@ -1,0 +1,99 @@
+{
+  "name": "OpenForge AI",
+  "owners": [
+    "lighthuska-lab",
+    "ryanbranson-lab",
+    "robertcurran-lab"
+  ],
+  "proposed_repository": "Light-Dataforge/openforge-ai",
+  "mission": "Research reliable image-grounded reasoning agents with evidence-based verification.",
+  "status": "Equal organization owner roles verified for all three accounts; evaluation foundation prepared for PR.",
+  "architecture": [
+    "core/evaluation: implemented offline evaluator",
+    "core/model_adapters and multimodal: next licensed VLM and processor boundary",
+    "core/reasoning: structured planning and intermediate validation",
+    "core/agent_runtime and tool_execution: capability-scoped actions",
+    "core/verification: evidence-linked outcomes",
+    "apps API/worker/dashboard and research reports added when functional"
+  ],
+  "functional_requirements": [
+    "Validate predictions against frozen references",
+    "Report correctness, coverage, abstentions and confidence scoring",
+    "Pin model/dataset/software and preprocessing metadata",
+    "Track image/evidence provenance and tool traces",
+    "Compare strategies under matched budgets and report failures"
+  ],
+  "phases": [
+    "Research foundation and evaluation (in progress)",
+    "Model integration and baseline",
+    "Structured reasoning comparisons",
+    "Permission-scoped runtime",
+    "Verification experiments",
+    "Reviewable research release"
+  ],
+  "backlog": [
+    {
+      "id": "OF-01",
+      "title": "Offline evaluation and abstention accounting",
+      "problem": "A baseline must account for every task before model comparisons.",
+      "implementation": "Strict bounded JSONL references/predictions; exact ID join; exact-string metrics and byte hashes.",
+      "acceptance": [
+        "Mismatched IDs fail",
+        "Conditional metrics are null for full abstention",
+        "CLI outputs no partial report on invalid input"
+      ],
+      "tests": [
+        "Metric accounting, provenance, malformed input and real CLI"
+      ],
+      "dependencies": [],
+      "status": "Implemented locally; independent review and GitHub CI pending"
+    },
+    {
+      "id": "OF-02",
+      "title": "Versioned experiment manifest validation",
+      "problem": "Metrics alone cannot establish which model/data/config produced predictions.",
+      "implementation": "Schema binding input hashes to immutable model/data revisions, licenses, prompt, seed, hardware/software, generation config and git revision.",
+      "acceptance": [
+        "Missing provenance fails",
+        "No paid model call occurs",
+        "Example manifest clearly labeled synthetic"
+      ],
+      "tests": [
+        "Missing fields, invalid revisions and hash mismatch"
+      ],
+      "dependencies": [
+        "OF-01 contract review"
+      ]
+    },
+    {
+      "id": "OF-03",
+      "title": "Licensed VLM baseline with recorded resource pilot",
+      "problem": "Need a real multimodal baseline before verifier comparisons.",
+      "implementation": "Compare current model cards/licenses, measure one candidate on available CPU; request GPU budget only if needed.",
+      "acceptance": [
+        "Pinned processor/model revisions",
+        "No remote model code enabled by default",
+        "Actual predictions and complete manifest preserved"
+      ],
+      "tests": [
+        "Adapter input errors, oversized images, timeout and inference smoke"
+      ],
+      "dependencies": [
+        "OF-02",
+        "Model/dataset license review"
+      ]
+    }
+  ],
+  "testing_strategy": [
+    "Strict evaluator unit and CLI integration tests",
+    "Adapter contract tests plus explicitly labeled fixtures",
+    "Hardware tests optional; no fabricated model execution",
+    "Paired controlled experiments with fixed split and uncertainty reporting"
+  ],
+  "release_criteria": [
+    "Actual VLM baseline and pinned data available",
+    "Reproducible comparison with limitations",
+    "Equal governance and genuine review documented",
+    "User approval to publish release"
+  ]
+}
