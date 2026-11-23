@@ -14,10 +14,22 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -r requirements-dev.txt
-      - run: ruff check core tests
-      - run: ruff format --check core tests
-      - run: mypy
+      - run: ruff check core apps tests
+      - run: ruff format --check core apps tests
+      - run: mypy core apps
       - run: python -m unittest discover -s tests -v
       - run: python -m core.evaluation examples/references.jsonl examples/predictions.jsonl
       - run: python -m core.experiments examples/synthetic-manifest.json examples/references.jsonl examples/predictions.jsonl
-      - run: python -m compileall -q core
+      - run: python -m compileall -q core apps
+
+  visual-fixtures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install Pillow==13.0.0
+      - run: python -c "import PIL; from PIL import Image; print(PIL.__version__)"
+      - run: python -m unittest discover -s tests -p test_visual_fixtures.py -v
+      - run: python -m unittest discover -s tests -p test_pilot_integration.py -v
