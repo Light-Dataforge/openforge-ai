@@ -1,0 +1,8 @@
+# Optional runtime, Python 3.11+; use a clean Linux notebook environment.
+# First install the exact torch build from the official CPU/CUDA index in
+# docs/pilot-model-adapter.md, then install this file. This avoids implicitly
+# downloading a default CUDA runtime on a CPU-only notebook.
+torch==2.15.0
+transformers==5.24.0
+Pillow==13.0.0
+safetensors==0.8.0
