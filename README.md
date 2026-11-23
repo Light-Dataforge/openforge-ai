@@ -58,3 +58,7 @@ answers in images or verify evidence. No calibration curve, uncertainty interval
 latency/cost tracking, semantic judge, persistent experiment store or dependency
 security scanner exists. Inputs are bounded local files, not untrusted streams.
 MIT license applies to original code and synthetic fixtures only.
+
+The [zero-cost compute pilot](docs/free-compute-pilot.md) documents the pinned
+model candidate, resource limits and execution gates. It is planning only; no
+model download, inference or training is claimed.
