@@ -10,3 +10,9 @@ No private vulnerability reporting channel is configured yet. Do not disclose
 secrets in public issues. Establish a private contact before public hosting.
 Future tool execution requires explicit capabilities and process isolation; this
 local evaluator does not provide an execution sandbox.
+
+Experiment manifests declare metadata but are never executed. Validation binds
+reference/prediction hashes without downloading models or verifying the declared
+licenses, environment or actual model execution. Manifests may contain private
+prompts and hardware metadata; inspect them before sharing. See
+[manifest limits](docs/experiment-manifests.md).
