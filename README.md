@@ -86,3 +86,8 @@ bridge preserves failures/unexecuted tasks and abstains on unsupported answers.
 Export a revalidated offline saved-answer report with
 `python -m apps.pilot_report SOURCE_RUN MANIFEST --output NEW_REPORT.html`.
 See [saved-pilot reporting](docs/saved-pilot-report.md) for privacy and source limits.
+
+Compare two saved sources using the same tasks with
+`python -m apps.pilot_compare BEFORE_RUN AFTER_RUN MANIFEST --output NEW.json`.
+[Paired comparisons](docs/paired-pilot-comparison.md) retain all task states without
+exporting raw answer text or claiming model accuracy.
