@@ -203,6 +203,7 @@ def verify_pilot(
     for case, row in sorted(validated, key=lambda pair: pair[0].identifier):
         result: dict[str, Any] = {
             "id": case.identifier,
+            "question": case.question,
             "image_sha256": case.image_sha256,
             "raw_answer": row["answer"],
             "normalized_answer": None,

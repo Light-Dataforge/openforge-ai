@@ -82,3 +82,7 @@ It embeds the scenes and revalidates decisions without a browser service or GPU.
 [Verify saved pilot answers](docs/saved-pilot-verification.md) with
 `python -m apps.pilot_verification RUN_DIR MANIFEST --output NEW_DIR`. The offline
 bridge preserves failures/unexecuted tasks and abstains on unsupported answers.
+
+Export a revalidated offline saved-answer report with
+`python -m apps.pilot_report SOURCE_RUN MANIFEST --output NEW_REPORT.html`.
+See [saved-pilot reporting](docs/saved-pilot-report.md) for privacy and source limits.
