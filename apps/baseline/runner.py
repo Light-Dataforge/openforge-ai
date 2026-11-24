@@ -14,6 +14,8 @@ from importlib import import_module, metadata
 from pathlib import Path, PurePosixPath
 from typing import Any, Protocol, cast
 
+from core.evaluation.provenance import capture_source
+
 MAX_CASES = 20
 MAX_MANIFEST_BYTES = 512 * 1024
 MAX_IMAGE_BYTES = 2 * 1024 * 1024
@@ -191,6 +193,7 @@ def run_pilot(
     if type(max_new_tokens) is not int or not 1 <= max_new_tokens <= 128:
         raise ValueError("max_new_tokens must be an integer from 1 to 128")
     cases, manifest_hash = load_cases(manifest)
+    source_inventory = capture_source()
     output = Path(output_dir)
     output.mkdir(mode=0o700, exist_ok=False)
     os.chmod(output, 0o700)
@@ -205,6 +208,7 @@ def run_pilot(
         "max_new_tokens": max_new_tokens,
         "adapter_mode": "injected" if adapter is not None else "local-smolvlm",
         "environment": _environment(),
+        "source_inventory": source_inventory,
         "status": "running",
     }
     _save_json(output / "request.json", summary)
