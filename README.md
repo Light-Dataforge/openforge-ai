@@ -78,3 +78,7 @@ reasoning. See [supported claims and limits](docs/verification-demo.md).
 Export a local, read-only [pixel-evidence report](docs/evidence-report.md) with
 `python -m apps.evidence_report verification-results --output evidence.html`.
 It embeds the scenes and revalidates decisions without a browser service or GPU.
+
+[Verify saved pilot answers](docs/saved-pilot-verification.md) with
+`python -m apps.pilot_verification RUN_DIR MANIFEST --output NEW_DIR`. The offline
+bridge preserves failures/unexecuted tasks and abstains on unsupported answers.
