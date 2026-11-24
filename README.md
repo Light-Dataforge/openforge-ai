@@ -105,3 +105,8 @@ Audit saved source declarations against observed local bytes with
 `python -m apps.source_audit SAVED_RUN_DIRECTORY`.
 [Source audit limits](docs/source-audit.md) explain why a match is not execution
 attestation or result validation.
+
+Run the complete local synthetic pipeline with
+`python -m apps.pilot_workflow --output NEW_DIRECTORY`.
+The [workflow guide](docs/local-pilot-workflow.md) explains dry-run defaults,
+explicit live opt-ins, retained failures, artifacts and privacy limits.
