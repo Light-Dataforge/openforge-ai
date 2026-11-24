@@ -91,3 +91,8 @@ Compare two saved sources using the same tasks with
 `python -m apps.pilot_compare BEFORE_RUN AFTER_RUN MANIFEST --output NEW.json`.
 [Paired comparisons](docs/paired-pilot-comparison.md) retain all task states without
 exporting raw answer text or claiming model accuracy.
+
+The [free notebook workflow](notebooks/kaggle-free-workflow.ipynb) now includes
+verification, offline reports and paired comparisons. Its default path runs
+without optional model packages; [setup and limits](docs/free-notebook-workflow.md)
+remain explicit. No cloud execution is claimed.
