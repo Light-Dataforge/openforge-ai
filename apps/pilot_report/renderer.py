@@ -38,7 +38,8 @@ def build_report(
     for row in rows:
         cards.append(
             "<article><h2>Task " + _escape(row["id"]) + "</h2>"
-            "<dl><dt>Status</dt><dd>" + _escape(row["status"]) + "</dd>"
+            "<dl><dt>Question</dt><dd>" + _escape(row["question"]) + "</dd>"
+            "<dt>Status</dt><dd>" + _escape(row["status"]) + "</dd>"
             "<dt>Saved answer</dt><dd><pre>"
             + _escape(row["raw_answer"])
             + "</pre></dd>"

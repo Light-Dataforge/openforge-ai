@@ -36,6 +36,7 @@ class PilotReportTests(unittest.TestCase):
         self.assertEqual(text.count("<article>"), 6)
         self.assertNotIn("<script>", text)
         self.assertIn("&lt;script&gt;", text)
+        self.assertIn("What color is the square?", text)
         self.assertIn("default-src 'none'", text)
         self.assertNotIn(str(self.root), text)
         self.assertFalse(summary["performs_model_inference"])
