@@ -25,6 +25,9 @@ verification counts plus reproduction digests; it is written only after all stag
 finish and the observed source receipt matches. A repeated verification inside the
 report must match the first check. Infrastructure errors can leave a partial new
 directory without workflow.json; retained source evidence is never deleted.
+A disk-sync failure after final-name publication can leave a complete workflow.json
+even though the command fails. Inspect retained artifacts after any reported error;
+publication is not a multi-file transaction or power-loss guarantee.
 
 Source model-load/answer failures are data, not infrastructure success: they remain
 in every downstream artifact and produce complete-with-source-failures. CLI exit1

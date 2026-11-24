@@ -8,6 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from apps.evidence_report.renderer import _publish
 from apps.pilot_workflow.runner import run_workflow
 
 
@@ -162,4 +163,21 @@ class PilotWorkflowTests(unittest.TestCase):
         self.assertEqual(done.returncode, 1, done.stderr)
         self.assertEqual(json.loads(done.stdout)["source_counts"]["failed"], 6)
         self.assertTrue((self.root / "workflow.json").exists())
+        self.assertTrue((self.root / "report.html").exists())
+
+    def test_final_publication_error_can_leave_complete_record_without_success_return(
+        self,
+    ):
+        def publish_then_fail(path, payload):
+            _publish(path, payload)
+            if path.name == "workflow.json":
+                raise OSError("synthetic post-publication sync failure")
+
+        with patch(
+            "apps.pilot_workflow.runner._publish", side_effect=publish_then_fail
+        ):
+            with self.assertRaises(OSError):
+                run_workflow(self.root)
+        saved = json.loads((self.root / "workflow.json").read_text())
+        self.assertEqual(saved["status"], "complete")
         self.assertTrue((self.root / "report.html").exists())
