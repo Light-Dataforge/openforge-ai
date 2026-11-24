@@ -100,3 +100,8 @@ remain explicit. No cloud execution is claimed.
 New pilot records retain an [observed source inventory](docs/source-inventory.md)
 for reproduction checks. File hashes identify observed bytes and do not attest
 which code or model executed.
+
+Audit saved source declarations against observed local bytes with
+`python -m apps.source_audit SAVED_RUN_DIRECTORY`.
+[Source audit limits](docs/source-audit.md) explain why a match is not execution
+attestation or result validation.
