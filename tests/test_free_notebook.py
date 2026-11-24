@@ -15,6 +15,8 @@ class FreeNotebookTests(unittest.TestCase):
     def test_empty_outputs_pinned_source_and_explicit_live_opt_ins(self):
         notebook = self.notebook()
         self.assertEqual(notebook["nbformat"], 4)
+        ids = [cell["id"] for cell in notebook["cells"]]
+        self.assertEqual(len(ids), len(set(ids)))
         codes = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
         for cell in codes:
             self.assertIsNone(cell["execution_count"])
