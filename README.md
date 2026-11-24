@@ -67,3 +67,10 @@ model download, inference or training is claimed.
 
 Start with the [combined multimodal pilot](docs/multimodal-pilot.md) for a fully
 model-free dry-run and the remaining gates before a real Kaggle Free model run.
+
+## Run the CPU pixel-verification demo
+
+`python -m apps.verification_demo --output verification-results` checks twelve
+synthetic claims against actual pixels and retains evidence. No model or Kaggle
+account is needed. It is a narrow geometric conformance demo, not general visual
+reasoning. See [supported claims and limits](docs/verification-demo.md).

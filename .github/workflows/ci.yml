@@ -20,6 +20,7 @@ jobs:
       - run: python -m unittest discover -s tests -v
       - run: python -m core.evaluation examples/references.jsonl examples/predictions.jsonl
       - run: python -m core.experiments examples/synthetic-manifest.json examples/references.jsonl examples/predictions.jsonl
+      - run: python -m apps.verification_demo --output verification-smoke
       - run: python -m compileall -q core apps
 
   visual-fixtures:
@@ -33,3 +34,4 @@ jobs:
       - run: python -c "import PIL; from PIL import Image; print(PIL.__version__)"
       - run: python -m unittest discover -s tests -p test_visual_fixtures.py -v
       - run: python -m unittest discover -s tests -p test_pilot_integration.py -v
+      - run: python -m unittest discover -s tests -p test_pixel_verification_integration.py -v
