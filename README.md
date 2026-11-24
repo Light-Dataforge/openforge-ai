@@ -96,3 +96,7 @@ The [free notebook workflow](notebooks/kaggle-free-workflow.ipynb) now includes
 verification, offline reports and paired comparisons. Its default path runs
 without optional model packages; [setup and limits](docs/free-notebook-workflow.md)
 remain explicit. No cloud execution is claimed.
+
+New pilot records retain an [observed source inventory](docs/source-inventory.md)
+for reproduction checks. File hashes identify observed bytes and do not attest
+which code or model executed.
