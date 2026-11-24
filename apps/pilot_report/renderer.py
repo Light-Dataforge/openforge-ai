@@ -21,7 +21,7 @@ def build_report(
 ) -> dict[str, Any]:
     """Recompute results from frozen trusted inputs; publish one no-clobber HTML file.
 
-    This exports raw answers and task IDs; review their contents before sharing.
+    This exports raw answers, questions and task IDs. Review before sharing.
     Source failure messages, source paths and reference labels are not exported.
     """
     target = Path(output)

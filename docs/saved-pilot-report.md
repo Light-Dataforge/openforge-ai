@@ -13,7 +13,7 @@ Synthetic-fixture results are software checks, not model accuracy.
 HTML contains escaped text, no scripts or external assets, and a restrictive
 content security policy. It exports saved/normalized answers, pixel-derived expected
 values, evidence, failure stage/type and reproduction digests. Reference labels and
-raw failure messages are excluded. Raw answers and task IDs may contain private
+raw failure messages are excluded. Raw answers, questions and task IDs may contain private
 text: review before sharing.
 
 Source inputs and directories must remain trusted and frozen. Source limits apply;
