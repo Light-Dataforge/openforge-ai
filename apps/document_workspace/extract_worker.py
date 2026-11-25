@@ -48,6 +48,22 @@ def main() -> int:
                     "A PDF page exceeds the supported content-stream limit."
                 )
             text = (page.extract_text() or "").replace("\x00", "").strip()
+            # Positioned Word exports can put each word on its own line in
+            # plain extraction. Recover their actual visual lines instead.
+            lines = [line for line in text.splitlines() if line.strip()]
+            if (
+                len(lines) >= 20
+                and sum(len(line.split()) == 1 for line in lines) / len(lines) > 0.7
+            ):
+                layout = (page.extract_text(extraction_mode="layout") or "").strip()
+                if layout:
+                    text = (
+                        "\n".join(
+                            " ".join(line.split()) for line in layout.splitlines()
+                        )
+                        .replace("\x00", "")
+                        .strip()
+                    )
             total += len(text)
             if total > MAX_CHARS:
                 raise ValueError("PDF extracted text exceeds two million characters.")

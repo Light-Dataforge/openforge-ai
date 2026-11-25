@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from . import model
+from .retrieval import retrieval_query
 from .store import Store
 
 STATIC = Path(__file__).parent / "static"
@@ -292,7 +293,8 @@ class Handler(BaseHTTPRequestHandler):
         elif match := re.fullmatch(r"/api/conversations/([^/]+)/messages", path):
             data = self._data()
             question = text(data.get("text"))
-            conversation = store.get_conversation(match[1])["conversation"]
+            thread = store.get_conversation(match[1])
+            conversation = thread["conversation"]
             if not self.server.chat_lock.acquire(blocking=False):
                 self._json(
                     {"error": "An answer is already being prepared. Please wait."}, 503
@@ -301,11 +303,13 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 sources = store.search(
                     conversation["project_id"],
-                    question,
+                    retrieval_query(question, thread["messages"]),
                     document_id=data.get("document_id"),
                     limit=4,
                 )
-                content, mode = model.answer(question, sources)
+                content, mode = model.answer(
+                    question, sources, history=thread["messages"]
+                )
                 user = store.add_message(match[1], "user", question, [], None)
                 assistant = store.add_message(
                     match[1], "assistant", content, sources, mode

@@ -16,6 +16,31 @@ class DocumentModelTests(unittest.TestCase):
             }
         ]
 
+    def test_long_fallback_selects_verbatim_evidence_without_dumping_page(self):
+        source = (
+            "Unrelated background. " * 80
+            + "Programming languages include Python and Java."
+        )
+        excerpt = model.evidence_excerpt("What programming languages?", source)
+        self.assertIn("Programming languages include Python and Java.", excerpt)
+        self.assertLess(len(excerpt), 700)
+
+    def test_model_receives_previous_questions_as_context_not_evidence(self):
+        with (
+            patch.object(model, "health", return_value={"available": True}),
+            patch.object(
+                model, "_request", return_value={"message": {"content": "30 days [1]."}}
+            ) as request,
+        ):
+            model.answer(
+                "And how long?",
+                self.sources,
+                history=[{"role": "user", "content": "What is the refund policy?"}],
+            )
+        prompt = request.call_args.args[1]["messages"][1]["content"]
+        self.assertIn("context only, not evidence", prompt)
+        self.assertIn("What is the refund policy?", prompt)
+
     def test_missing_or_malformed_runtime_is_explicitly_unavailable(self):
         for outcome in [OSError("unavailable"), {"models": None}, {"models": []}]:
             options = (

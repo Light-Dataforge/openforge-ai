@@ -52,7 +52,38 @@ def health() -> dict[str, Any]:
         }
 
 
-def answer(question: str, citations: list[dict[str, Any]]) -> tuple[str, str]:
+def evidence_excerpt(question: str, text: str) -> str:
+    """Select short verbatim sentences; never synthesize unsupported prose."""
+    if len(text) <= 600:
+        return text
+    from .retrieval import retrieval_query
+
+    words = set(re.findall(r"\w{3,}", retrieval_query(question, []).lower()))
+    spans = list(re.finditer(r"[^\n.!?]+(?:[.!?]|$)", text, re.MULTILINE))
+    ranked = sorted(
+        spans,
+        key=lambda span: (
+            -len(words & set(re.findall(r"\w{3,}", span.group().lower()))),
+            span.start(),
+        ),
+    )
+    selected = sorted(ranked[:3], key=lambda span: span.start())
+    result = []
+    for span in selected:
+        passage = span.group().strip()
+        if len(passage) > 500:
+            passage = passage[:500].rsplit(" ", 1)[0] + "…"
+        if passage:
+            result.append(passage)
+    return "\n…\n".join(result) if result else text[:500] + "…"
+
+
+def answer(
+    question: str,
+    citations: list[dict[str, Any]],
+    *,
+    history: list[dict[str, Any]] | None = None,
+) -> tuple[str, str]:
     if not citations:
         return (
             "I couldn’t find a relevant passage in these documents. "
@@ -60,7 +91,8 @@ def answer(question: str, citations: list[dict[str, Any]]) -> tuple[str, str]:
             "source_excerpts",
         )
     fallback = "Here are the relevant passages from your documents:\n\n" + "\n\n".join(
-        f"[{i}] {source['text']}" for i, source in enumerate(citations, 1)
+        f"[{i}] {evidence_excerpt(question, source['text'])}"
+        for i, source in enumerate(citations, 1)
     )
     if not health()["available"]:
         return fallback, "source_excerpts"
@@ -72,6 +104,11 @@ def answer(question: str, citations: list[dict[str, Any]]) -> tuple[str, str]:
             "excerpt": row["text"],
         }
         for i, row in enumerate(citations, 1)
+    ]
+    previous_questions = [
+        str(row.get("content", ""))[:1000]
+        for row in (history or [])[-8:]
+        if row.get("role") == "user"
     ]
     messages = [
         {
@@ -91,6 +128,8 @@ def answer(question: str, citations: list[dict[str, Any]]) -> tuple[str, str]:
             "role": "user",
             "content": "SOURCE EXCERPTS (JSON):\n"
             + json.dumps(context, ensure_ascii=False)
+            + "\n\nPREVIOUS QUESTIONS (context only, not evidence):\n"
+            + json.dumps(previous_questions, ensure_ascii=False)
             + "\n\nQUESTION:\n"
             + question,
         },
