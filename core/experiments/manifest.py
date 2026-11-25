@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from core.evaluation.metrics import evaluate
+from core.local_files import read_regular
 
 MAX_MANIFEST_BYTES = 1024 * 1024
 MAX_TEXT = 16384
@@ -161,10 +162,7 @@ def evaluate_manifest(
     Paths are explicit CLI/library inputs, not executable or downloadable manifest
     instructions. Reports omit prompt text, model names and environment details.
     """
-    with open(manifest, "rb") as stream:
-        raw = stream.read(MAX_MANIFEST_BYTES + 1)
-    if len(raw) > MAX_MANIFEST_BYTES:
-        raise ValueError("manifest exceeds 1 MiB")
+    raw = read_regular(manifest, MAX_MANIFEST_BYTES)
     try:
         document = json.loads(
             raw.decode("utf-8"), object_pairs_hook=_object, parse_constant=_constant

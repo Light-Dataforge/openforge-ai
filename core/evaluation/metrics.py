@@ -12,6 +12,8 @@ import math
 from pathlib import Path
 from typing import Any
 
+from core.local_files import read_regular
+
 MAX_BYTES = 8 * 1024 * 1024
 MAX_RECORDS = 10000
 
@@ -42,10 +44,7 @@ def _text(value: Any) -> bool:
 def _load(
     path: str | Path, *, prediction: bool
 ) -> tuple[dict[str, dict[str, Any]], str]:
-    with open(path, "rb") as stream:
-        raw = stream.read(MAX_BYTES + 1)
-    if len(raw) > MAX_BYTES:
-        raise ValueError("input exceeds 8 MiB")
+    raw = read_regular(path, MAX_BYTES)
     rows: dict[str, dict[str, Any]] = {}
     lines = raw.decode("utf-8").split("\n")
     if lines[-1] == "":
