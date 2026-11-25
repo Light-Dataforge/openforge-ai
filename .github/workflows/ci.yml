@@ -22,6 +22,7 @@ jobs:
       - run: python -m core.experiments examples/synthetic-manifest.json examples/references.jsonl examples/predictions.jsonl
       - run: python -m apps.verification_demo --output verification-smoke
       - run: python -m apps.evidence_report verification-smoke --output evidence-smoke.html
+      - run: python -m apps.paired_evaluation examples/references.jsonl examples/predictions.jsonl examples/synthetic-paired-after.jsonl --seed 42
       - run: python -m compileall -q core apps
 
   visual-fixtures:

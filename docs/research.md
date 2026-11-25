@@ -43,3 +43,8 @@ fully pinned artifacts; documented processor; CPU feasibility or separately
 approved GPU budget; controlled generation; failure observability. An optional pinned model candidate and adapter are now documented in
 [pilot-model-adapter.md](pilot-model-adapter.md); no actual model experiment or
 training is claimed. Paid inference remains outside the $0 budget.
+
+Offline [paired evaluation tooling](paired-evaluation.md) now implements complete
+paired exact-answer accounting and bounded seeded resampling. This implements an
+analysis procedure only; it does not establish a fair experiment, population
+coverage, a real model result or support for the hypothesis above.

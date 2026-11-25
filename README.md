@@ -58,8 +58,8 @@ then add permission-scoped tools and a research dashboard.
 
 Current limitations: exact matching cannot judge free-form correctness or visual
 grounding. The separate pixel verifier handles only documented synthetic geometry.
-Confidence diagnostics are descriptive; no uncertainty intervals or real model
-results exist. The pilot records latency but has no cloud cost meter, semantic
+Confidence diagnostics are descriptive. Paired bootstrap intervals are exploratory,
+not coverage guarantees or causal evidence; no real model results exist. The pilot records latency but has no cloud cost meter, semantic
 judge or persistent experiment store. Inputs are bounded regular local files.
 MIT license applies to original code and synthetic fixtures only.
 
@@ -120,3 +120,8 @@ symlinks before reading, preventing indefinite waits for a pipe writer.
 Inspect declared confidence with `python -m apps.confidence_diagnostics REFERENCES PREDICTIONS --bins 10`.
 [Diagnostic semantics](docs/confidence-diagnostics.md) cover reliability bins,
 abstention-aware coverage and whole-tie selective risk; no model result is implied.
+
+Compare exact-answer prediction sets on the same tasks with
+`python -m apps.paired_evaluation REFERENCES BEFORE AFTER --seed 42`.
+[Paired evaluation](docs/paired-evaluation.md) retains abstentions and documents
+the explicit resampling workload, quantile method and inference limitations.

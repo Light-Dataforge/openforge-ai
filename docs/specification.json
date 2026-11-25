@@ -100,6 +100,22 @@
         "OF-01 validated inputs"
       ],
       "status": "Implementation and tests in current dependent branch; review pending."
+    },
+    {
+      "id": "OF-05",
+      "title": "Complete paired exact evaluation and bounded seeded bootstrap",
+      "problem": "Independent scoring can hide task pairing and abstentions when comparing prediction sets.",
+      "implementation": "Strict three-file ID join, complete3x3 outcome table and explicit bounded paired correctness-difference bootstrap with recorded runtime/quantile method.",
+      "acceptance": [
+        "All tasks retained with abstention denominator",
+        "Identical and all-win/loss cases reproduce expected degenerate intervals",
+        "Seed/options/workload are explicit and bounded",
+        "No statistical significance, causal or model-execution claim"
+      ],
+      "dependencies": [
+        "OF-01 validated evaluator contracts"
+      ],
+      "status": "Current dependent implementation; independent review pending."
     }
   ],
   "testing_strategy": [
