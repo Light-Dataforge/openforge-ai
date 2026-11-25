@@ -1,0 +1,50 @@
+[
+  {
+    "id": "synthetic-color-red-square-v1",
+    "title": "Color recognition",
+    "type": "color-square",
+    "question": "What color is the square?",
+    "image": "assets/images/color-red-square.png",
+    "sha256": "ac88da0be08216c14a3010fbd3d43f7d198ff3543dfa4e15e1a67c20e4d91f7c"
+  },
+  {
+    "id": "synthetic-color-blue-circle-v1",
+    "title": "Shape recognition",
+    "type": "color-circle",
+    "question": "What color is the circle?",
+    "image": "assets/images/color-blue-circle.png",
+    "sha256": "ecaf3977940be8e1356cc192376a4aae30edc6cd2040c2beb7603c2493aa102b"
+  },
+  {
+    "id": "synthetic-count-green-squares-v1",
+    "title": "Object counting",
+    "type": "count-green-squares",
+    "question": "How many green squares are shown?",
+    "image": "assets/images/count-green-squares.png",
+    "sha256": "fc6544e26fe3323ec490f09b7454919d4e313343277578c79eb0768b228c1e7a"
+  },
+  {
+    "id": "synthetic-count-blue-circles-v1",
+    "title": "Multiple objects",
+    "type": "count-blue-circles",
+    "question": "How many blue circles are shown?",
+    "image": "assets/images/count-blue-circles.png",
+    "sha256": "b6f48ae2a189dde34d1473552e87704a29d61f90f8d296159e23bd60063efa7d"
+  },
+  {
+    "id": "synthetic-relative-left-v1",
+    "title": "Spatial reasoning",
+    "type": "relation-left",
+    "question": "Is the red square left or right of the blue circle?",
+    "image": "assets/images/relative-left.png",
+    "sha256": "516df12e0a65c4b31de2fcec662b54476f98150c62922f4dbec8c4638f375b29"
+  },
+  {
+    "id": "synthetic-chart-tallest-bar-v1",
+    "title": "Chart understanding",
+    "type": "tallest",
+    "question": "Which color has the tallest bar?",
+    "image": "assets/images/chart-tallest-bar.png",
+    "sha256": "d38fa8b7dee2ae5ccddb4f3a79c4ea1ab60530c9197295e2946ace95d4eb6a08"
+  }
+]
