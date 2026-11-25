@@ -110,3 +110,7 @@ Run the complete local synthetic pipeline with
 `python -m apps.pilot_workflow --output NEW_DIRECTORY`.
 The [workflow guide](docs/local-pilot-workflow.md) explains dry-run defaults,
 explicit live opt-ins, retained failures, artifacts and privacy limits.
+
+Evaluation/experiment inputs must be regular local files. The
+[regular-input contract](docs/regular-evaluation-inputs.md) rejects pipes and leaf
+symlinks before reading, preventing indefinite waits for a pipe writer.
