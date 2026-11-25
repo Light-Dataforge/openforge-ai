@@ -3,3 +3,8 @@ __pycache__/
 .venv/
 .mypy_cache/
 .ruff_cache/
+.venv-docs/
+.workspace-data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

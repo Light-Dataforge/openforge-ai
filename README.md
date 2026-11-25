@@ -9,6 +9,16 @@ runner and an optional pinned local model adapter. No live model run, training o
 general agent execution is claimed.
 No model-quality claims or benchmark improvements are made.
 
+## Local document workspace
+
+A new full-stack document application is implemented under
+[apps/document_workspace](apps/document_workspace/README.md): real PDF uploads,
+page-aware source search, cited conversations and persistent notes/projects.
+Run locally with a private data directory; optional local-model drafting is
+separate from explicitly labeled source excerpts. The current delivery verifies
+upload/retrieval/citation/persistence; local-model downloads were unavailable.
+No cloud deployment or generative inference is claimed for this application.
+
 ## Run and test
 
 Python 3.12+; no dependencies, network, credentials or GPU required. From this directory:

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A private local workspace for your documents, grounded conversations, and saved research notes.">
+<meta name="theme-color" content="#123e39"><title>OpenForge · Document workspace</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar">
+<a href="#" class="brand" id="brand-home"><span class="brand-icon"><i></i><i></i><i></i><i></i></span><strong>OpenForge</strong></a>
+<div class="workspace-label"><span class="workspace-avatar">W</span><div><strong>Your workspace</strong><small>Stored on this computer</small></div><span class="icon" data-icon="chevronDown"></span></div>
+<button class="new-project-button" id="sidebar-create"><span class="icon" data-icon="plus"></span>New project</button>
+<div class="section-label">PROJECTS <span id="project-count">0</span></div>
+<div id="project-list" class="project-list"><div class="sidebar-empty">Loading your projects…</div></div>
+<div class="sidebar-project-tools" id="project-tools" hidden>
+<div class="section-label">IN THIS PROJECT</div>
+<nav class="project-nav" aria-label="Project navigation">
+<button data-view="library" class="active"><span class="icon" data-icon="folder"></span>Documents<span id="nav-doc-count"></span></button>
+<button data-view="search"><span class="icon" data-icon="search"></span>Search sources</button>
+<button data-view="notes"><span class="icon" data-icon="note"></span>Saved notes<span id="nav-note-count"></span></button>
+</nav>
+<div class="section-label conversation-label">CONVERSATIONS <button class="small-icon-button" id="sidebar-new-chat" aria-label="New conversation"><span class="icon" data-icon="plus"></span></button></div>
+<div id="conversation-list" class="conversation-list"></div>
+</div>
+<div class="sidebar-footer"><div class="privacy-label"><span class="icon" data-icon="shield"></span><span>Local by design</span></div><p>Documents and history stay in this workspace. No paid API is used.</p><button id="about-button" class="sidebar-link">About this workspace <span class="icon" data-icon="info"></span></button></div>
+</aside>
+<div class="main-shell">
+<header class="topbar"><div class="header-left"><button class="icon-button mobile-menu" id="menu-button" aria-label="Toggle sidebar"><span class="icon" data-icon="menu"></span></button><span class="breadcrumb-home">Workspace</span><span class="breadcrumb-divider">/</span><span id="breadcrumb">Your projects</span></div><div class="header-right"><span id="connection-badge" class="connection-badge"><span class="status-dot"></span>Connecting</span><button class="icon-button" id="refresh-button" aria-label="Refresh workspace"><span class="icon" data-icon="refresh"></span></button><span class="profile-avatar">You</span></div></header>
+<div class="notice-banner" id="notice" hidden role="alert"><span class="icon" data-icon="alert"></span><span id="notice-text"></span><button class="icon-button" id="notice-dismiss" aria-label="Dismiss notice">×</button></div>
+<div class="workspace-body" id="workspace-body">
+<main id="main-content" class="main-content"></main>
+<aside id="chat-panel" class="chat-panel" hidden aria-label="Document conversation">
+<div class="chat-top"><div><span class="chat-spark" data-icon="spark"></span><strong>Ask your documents</strong></div><button class="icon-button" id="new-chat-button" aria-label="Start a new conversation"><span class="icon" data-icon="edit"></span></button></div>
+<div class="chat-context"><span class="icon" data-icon="layers"></span><select id="chat-scope" aria-label="Conversation document scope"><option value="all">All project documents</option></select></div>
+<div class="mode-description" id="mode-description"></div>
+<div class="messages" id="messages" aria-live="polite"></div>
+<form class="composer" id="chat-form"><label class="sr-only" for="chat-input">Question about your documents</label><textarea id="chat-input" rows="2" placeholder="Ask a question about your documents…" maxlength="4000"></textarea><div class="composer-bottom"><span id="composer-hint">Answers linked to your sources</span><button class="send-button" id="send-button" type="submit" aria-label="Send question"><span class="icon" data-icon="send"></span></button></div></form>
+<div class="chat-footnote">Check cited passages before relying on an answer.</div>
+</aside>
+</div>
+</div>
+</div>
+<input type="file" id="file-input" accept="application/pdf,.pdf" multiple hidden>
+<dialog id="project-dialog"><form id="project-form"><button type="button" class="icon-button dialog-close" data-close="project-dialog" aria-label="Close project dialog">×</button><span class="dialog-eyebrow">A PLACE FOR YOUR RESEARCH</span><h2>Create a project</h2><p>Keep related documents, conversations, and notes together.</p><label for="project-name">Project name</label><input id="project-name" name="name" type="text" maxlength="80" placeholder="e.g. Product research" required><label for="project-description">Description <span>optional</span></label><textarea id="project-description" name="description" maxlength="1000" rows="3" placeholder="What are you working on?"></textarea><div class="dialog-error" id="project-error" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary-button" data-close="project-dialog">Cancel</button><button type="submit" class="primary-button" id="create-project-submit">Create project</button></div></form></dialog>
+<dialog id="note-dialog"><form id="note-form"><button type="button" class="icon-button dialog-close" data-close="note-dialog" aria-label="Close note dialog">×</button><span class="dialog-eyebrow">KEEP WHAT MATTERS</span><h2>Save a note</h2><p id="note-location">A note for this project.</p><label for="note-text">Your note</label><textarea id="note-text" rows="6" maxlength="10000" required placeholder="Write an observation, a question, or something to follow up…"></textarea><div class="dialog-error" id="note-error" role="alert"></div><div class="dialog-actions"><button type="button" class="secondary-button" data-close="note-dialog">Cancel</button><button class="primary-button" id="save-note-submit">Save note</button></div></form></dialog>
+<dialog id="about-dialog"><button type="button" class="icon-button dialog-close" data-close="about-dialog" aria-label="Close about dialog">×</button><span class="dialog-eyebrow">OPENFORGE DOCUMENT WORKSPACE</span><h2>Your sources, in focus.</h2><p>This application stores projects, uploaded PDFs, extracted text, conversations, and notes in a local database. Documents are not uploaded to a cloud service.</p><p>When a local model is available, it can draft answers using retrieved source passages. Otherwise, the application returns matching source excerpts and clearly labels them as search results—not generated answers.</p><p>PDFs must contain selectable text. Scanned or encrypted PDFs may not be supported. Text extraction can lose formatting; check the original PDF and cited passages.</p><button class="primary-button" type="button" data-close="about-dialog">Got it</button></dialog>
+<div id="toast" class="toast" role="status"></div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+import unittest
+from unittest.mock import patch
+
+from apps.document_workspace import model
+
+
+class DocumentModelTests(unittest.TestCase):
+    def setUp(self):
+        self.sources = [
+            {
+                "chunk_id": "chunk-1",
+                "document_id": "doc-1",
+                "document_name": "Policy.pdf",
+                "page": 2,
+                "text": "Customers may request refunds within 30 days.",
+            }
+        ]
+
+    def test_missing_or_malformed_runtime_is_explicitly_unavailable(self):
+        for outcome in [OSError("unavailable"), {"models": None}, {"models": []}]:
+            options = (
+                {"side_effect": outcome}
+                if isinstance(outcome, Exception)
+                else {"return_value": outcome}
+            )
+            with patch.object(model, "_request", **options):
+                self.assertFalse(model.health()["available"])
+
+    def test_no_sources_never_calls_model_or_invents_answer(self):
+        with patch.object(model, "_request", side_effect=AssertionError("not called")):
+            content, mode = model.answer("What is the refund policy?", [])
+        self.assertEqual(mode, "source_excerpts")
+        self.assertIn("couldn’t find", content)
+
+    def test_source_only_preserves_actual_passage_and_labels_mode(self):
+        with patch.object(model, "health", return_value={"available": False}):
+            content, mode = model.answer("What is the refund policy?", self.sources)
+        self.assertEqual(mode, "source_excerpts")
+        self.assertIn(self.sources[0]["text"], content)
+        self.assertIn("[1]", content)
+
+    def test_local_answer_requires_actual_source_reference(self):
+        with (
+            patch.object(model, "health", return_value={"available": True}),
+            patch.object(
+                model,
+                "_request",
+                return_value={
+                    "message": {"content": "Refunds are available within 30 days [1]."}
+                },
+            ) as request,
+        ):
+            content, mode = model.answer("What is the refund policy?", self.sources)
+        self.assertEqual(mode, "local_model")
+        self.assertIn("30 days", content)
+        self.assertEqual(request.call_args.args[0], "/api/chat")
+        payload = request.call_args.args[1]
+        self.assertFalse(payload["stream"])
+        self.assertIn("untrusted data", payload["messages"][0]["content"])
+        self.assertNotIn("tools", payload)
+
+    def test_invalid_citations_or_local_failure_returns_evidence_not_fake_ai(self):
+        for outcome in [
+            {"message": {"content": "A claim with no source"}},
+            {"message": {"content": "A claim [9]"}},
+            {"message": None},
+            OSError("private provider error"),
+        ]:
+            options = (
+                {"side_effect": outcome}
+                if isinstance(outcome, Exception)
+                else {"return_value": outcome}
+            )
+            with (
+                patch.object(model, "health", return_value={"available": True}),
+                patch.object(model, "_request", **options),
+            ):
+                content, mode = model.answer("Question?", self.sources)
+            self.assertEqual(mode, "source_excerpts")
+            self.assertIn(self.sources[0]["text"], content)
+            self.assertNotIn("private provider error", content)
