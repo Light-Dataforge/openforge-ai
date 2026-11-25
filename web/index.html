@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="OpenForge's interactive visual verification lab. Inspect synthetic scenes, test answers against actual pixels, and explore retained experimental evidence.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'">
+<meta name="theme-color" content="#0e7461"><title>OpenForge · Visual research workspace</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+<script type="module" src="app.mjs"></script>
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar">
+<a class="brand" href="#lab" aria-label="OpenForge home"><span class="brand-mark"><i></i><i></i><i></i><i></i></span><strong>OpenForge<span>AI</span></strong></a>
+<div class="workspace"><span class="workspace-icon">O</span><div><strong>Research workspace</strong><small>Light DataForge</small></div><span class="chevron">⌄</span></div>
+<p class="nav-label">WORKSPACE</p>
+<nav aria-label="Main navigation">
+<a href="#overview" data-page="overview"><span data-icon="grid"></span>Overview</a>
+<a href="#lab" data-page="lab" class="active"><span data-icon="scan"></span>Visual lab<span class="nav-count">6</span></a>
+<a href="#experiments" data-page="experiments"><span data-icon="flask"></span>Experiments</a>
+<a href="#evidence" data-page="evidence"><span data-icon="layers"></span>Evidence library</a>
+</nav>
+<div class="sidebar-note"><span class="mini-orbit">✳</span><strong>Evidence before confidence.</strong><p>A workspace for exploring reliable multimodal reasoning.</p><a href="#overview">Explore the project <span>↗</span></a></div>
+<div class="sidebar-bottom"><a href="https://github.com/Light-Dataforge/openforge-ai" target="_blank" rel="noopener"><span data-icon="github"></span>View source on GitHub <span>↗</span></a><div class="team-avatar"><span>LD</span><div><strong>Light DataForge</strong><small>Open research · MIT</small></div></div></div>
+</aside>
+<div class="main-shell">
+<header class="topbar"><button class="icon-button mobile-menu" aria-label="Toggle navigation" id="menu-toggle"><span data-icon="menu"></span></button><div class="breadcrumb">Workspace<span>/</span><strong id="breadcrumb">Visual lab</strong></div><div class="topbar-right"><span class="release-tag">Research preview</span><a class="icon-button" href="https://github.com/Light-Dataforge/openforge-ai" aria-label="GitHub repository" target="_blank" rel="noopener"><span data-icon="github"></span></a><span class="avatar">OF</span></div></header>
+<main>
+<section class="page" id="page-lab">
+<div class="page-heading"><div><p class="eyebrow">THE VISUAL WORKBENCH</p><h1>Answers, meet evidence.</h1><p class="subtitle">Choose a scene. Make a claim. See what the pixels actually say.</p></div><span class="runtime-badge"><span></span>Runs in your browser</span></div>
+<div class="context-strip"><span data-icon="shield"></span><p><strong>Real pixel checks. No guesswork.</strong> This lab uses a narrow geometric verifier on original synthetic scenes. No model inference runs here.</p><button id="how-it-works" class="text-button">How it works</button></div>
+<div class="section-line"><h2>Choose your scene <span>6 original fixtures</span></h2><span class="subtle">01 · Explore</span></div>
+<div id="scene-picker" class="scene-picker" aria-label="Choose a synthetic scene"></div>
+<div class="lab-grid">
+<section class="panel scene-panel"><div class="panel-header"><h2><span data-icon="image"></span>Scene inspector</h2><label class="toggle-label"><input id="show-bounds" type="checkbox" checked><span class="toggle"></span>Show evidence</label></div><div class="scene-stage"><div class="scene-drawing"><img id="scene-image" alt="Selected original synthetic scene" width="128" height="96"><svg id="bounds-overlay" viewBox="0 0 128 96" aria-hidden="true"></svg></div><div class="scene-caption"><span class="tiny-square"></span><span>Original synthetic fixture</span><span>128 × 96 px</span></div></div><div class="scene-metadata"><span data-icon="fingerprint"></span><div><span>Image fingerprint</span><code id="image-hash"></code></div><button class="icon-button" id="copy-hash" aria-label="Copy full image fingerprint"><span data-icon="copy"></span></button></div></section>
+<section class="panel claim-panel"><div class="panel-header"><h2><span data-icon="message"></span>Test an answer</h2><span class="step-label">02 · Verify</span></div><div class="claim-content"><span class="field-label">QUESTION</span><h3 id="question"></h3><label class="field-label" for="answer">YOUR CANDIDATE ANSWER</label><div class="answer-field"><input id="answer" type="text" maxlength="256" autocomplete="off" spellcheck="false" value="blue"><kbd>↵</kbd></div><p id="answer-hint" class="input-hint">Use a single color word: red, green, or blue.</p><button id="verify-button" class="primary-button"><span data-icon="scan"></span>Verify against pixels</button><div class="quick-answers"><span>Try an example</span><div id="presets"></div></div><div class="privacy-note"><span data-icon="lock"></span>Checked locally. Your answer stays in this browser.</div></div></section>
+</div>
+<section class="panel result-panel" id="result-panel" aria-live="polite"><div id="result-body" class="result-body"><span class="result-symbol" data-icon="scan"></span><div><span class="field-label">VERIFICATION RESULT</span><h2>Ready to inspect the evidence</h2><p>Submit an answer to compare your claim with observed pixels.</p></div></div><div class="result-detail" id="result-detail"></div></section>
+<div class="section-line"><h2>What the verifier sees <span id="component-count">Observed components</span></h2><span class="subtle">03 · Inspect</span></div>
+<div id="components" class="components"></div>
+<footer class="page-footer"><span>OpenForge AI <span>·</span> Reliable multimodal reasoning, in progress.</span><a href="https://github.com/Light-Dataforge/openforge-ai" target="_blank" rel="noopener">Source & methodology ↗</a></footer>
+</section>
+<section class="page" id="page-overview" hidden></section>
+<section class="page" id="page-experiments" hidden></section>
+<section class="page" id="page-evidence" hidden></section>
+</main>
+</div></div>
+<dialog id="method-dialog"><button class="icon-button dialog-close" id="close-dialog" aria-label="Close explanation">✕</button><span class="dialog-label">UNDER THE HOOD</span><h2>Evidence you can inspect.</h2><p>The browser reads each scene's actual RGB pixels, groups connected colored regions, and checks their shape, count, position, or height. The expected answer is computed from those observations—not read from a reference label.</p><p>The same narrow rules power OpenForge's Python verifier. Unknown shapes, ambiguous geometry, and unsupported answer formats cause abstention.</p><p>This is a software conformance lab for six synthetic fixtures. It is not general image understanding, a live vision-language model, or a model-quality benchmark.</p><button class="primary-button" id="dialog-done">Back to the lab</button></dialog>
+<div id="toast" role="status"></div>
+</body></html>

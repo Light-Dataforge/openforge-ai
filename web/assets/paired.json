@@ -1,0 +1,58 @@
+{
+  "accuracy_all_delta": 0.3333333333333333,
+  "after": {
+    "abstained": 1,
+    "accuracy_all": 0.6666666666666666,
+    "answered": 2,
+    "correct": 2,
+    "coverage": 0.6666666666666666,
+    "total": 3
+  },
+  "after_prediction_sha256": "62ed04e86267091c98e37629e0f621667bf3157d0a6c405ea3b5c3c8e119235d",
+  "before": {
+    "abstained": 1,
+    "accuracy_all": 0.3333333333333333,
+    "answered": 2,
+    "correct": 1,
+    "coverage": 0.6666666666666666,
+    "total": 3
+  },
+  "before_prediction_sha256": "604ce1a9caa245fa2d3586cc0f0ce2e65d8dd1583ec9f733bd86f4901182c073",
+  "bootstrap": {
+    "level": 0.95,
+    "lower": 0.0,
+    "lower_index": 24,
+    "method": "paired-task-empirical-percentile-v1",
+    "python_implementation": "CPython",
+    "python_version": "3.13.9",
+    "replicates": 1000,
+    "rng": "random.Random.randrange",
+    "seed": 42,
+    "task_draws": 3000,
+    "task_order": "sorted-reference-id",
+    "upper": 1.0,
+    "upper_index": 974
+  },
+  "method": "paired-exact-bootstrap-v1",
+  "model_execution_verified": false,
+  "reference_sha256": "a5226de5d676b7d2b96d6282937594d1ac5abb542795d967b0eeacaef14b4d84",
+  "schema_version": 1,
+  "total": 3,
+  "transitions": {
+    "abstained": {
+      "abstained": 1,
+      "correct": 0,
+      "incorrect": 0
+    },
+    "correct": {
+      "abstained": 0,
+      "correct": 1,
+      "incorrect": 0
+    },
+    "incorrect": {
+      "abstained": 0,
+      "correct": 1,
+      "incorrect": 0
+    }
+  }
+}

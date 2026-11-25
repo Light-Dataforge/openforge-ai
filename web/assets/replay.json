@@ -1,0 +1,188 @@
+{
+  "summary": {
+    "cases": 6,
+    "counts": {
+      "abstained": 1,
+      "contradicted": 1,
+      "failed": 1,
+      "not_executed": 0,
+      "verified": 3
+    },
+    "kind": "offline-pilot-pixel-verification",
+    "manifest_sha256": "62d58ecedada27a1f1f48e4e7ffb56f9bb7a76eae79714865d33f90fe32556d5",
+    "normalization": "strip-and-lower-v1; no narrative or punctuation extraction",
+    "performs_model_inference": false,
+    "results_sha256": "89a102d07592f4297d90e1ad262520ca1989b4c129e8901536493348ae80edd9",
+    "schema_version": 1,
+    "source_declared_adapter_mode": "injected",
+    "source_execution_verified": false,
+    "source_results_sha256": "cb3f822f5207849f8918a669a4837915b28d032f72a2f64749d577da1e0ca2fe",
+    "source_run_kind": "pilot"
+  },
+  "results": [
+    {
+      "evidence": {
+        "components": {
+          "blue": [
+            {
+              "bottom": 84,
+              "left": 92,
+              "pixels": 1152,
+              "right": 110,
+              "shape": "rectangle",
+              "top": 20
+            }
+          ],
+          "green": [
+            {
+              "bottom": 84,
+              "left": 60,
+              "pixels": 792,
+              "right": 78,
+              "shape": "rectangle",
+              "top": 40
+            }
+          ],
+          "red": [
+            {
+              "bottom": 84,
+              "left": 28,
+              "pixels": 504,
+              "right": 46,
+              "shape": "rectangle",
+              "top": 56
+            }
+          ]
+        },
+        "image_bytes": 37028,
+        "image_sha256": "d38fa8b7dee2ae5ccddb4f3a79c4ea1ab60530c9197295e2946ace95d4eb6a08"
+      },
+      "expected": "blue",
+      "id": "synthetic-chart-tallest-bar-v1",
+      "image_sha256": "d38fa8b7dee2ae5ccddb4f3a79c4ea1ab60530c9197295e2946ace95d4eb6a08",
+      "normalized_answer": "blue",
+      "raw_answer": "blue",
+      "reason": "unique_tallest_bar",
+      "source_error": null,
+      "status": "verified"
+    },
+    {
+      "evidence": {
+        "components": {
+          "blue": [
+            {
+              "bottom": 71,
+              "left": 42,
+              "pixels": 1517,
+              "right": 87,
+              "shape": "circle",
+              "top": 26
+            }
+          ],
+          "green": [],
+          "red": []
+        },
+        "image_bytes": 37028,
+        "image_sha256": "ecaf3977940be8e1356cc192376a4aae30edc6cd2040c2beb7603c2493aa102b"
+      },
+      "expected": "blue",
+      "id": "synthetic-color-blue-circle-v1",
+      "image_sha256": "ecaf3977940be8e1356cc192376a4aae30edc6cd2040c2beb7603c2493aa102b",
+      "normalized_answer": "blue",
+      "raw_answer": " BLUE ",
+      "reason": "unique_shape_color",
+      "source_error": null,
+      "status": "verified"
+    },
+    {
+      "evidence": {
+        "components": {
+          "blue": [],
+          "green": [],
+          "red": [
+            {
+              "bottom": 68,
+              "left": 44,
+              "pixels": 1600,
+              "right": 84,
+              "shape": "square",
+              "top": 28
+            }
+          ]
+        },
+        "image_bytes": 37028,
+        "image_sha256": "ac88da0be08216c14a3010fbd3d43f7d198ff3543dfa4e15e1a67c20e4d91f7c"
+      },
+      "expected": "red",
+      "id": "synthetic-color-red-square-v1",
+      "image_sha256": "ac88da0be08216c14a3010fbd3d43f7d198ff3543dfa4e15e1a67c20e4d91f7c",
+      "normalized_answer": "blue",
+      "raw_answer": "blue",
+      "reason": "unique_shape_color",
+      "source_error": null,
+      "status": "contradicted"
+    },
+    {
+      "evidence": null,
+      "expected": null,
+      "id": "synthetic-count-blue-circles-v1",
+      "image_sha256": "b6f48ae2a189dde34d1473552e87704a29d61f90f8d296159e23bd60063efa7d",
+      "normalized_answer": null,
+      "raw_answer": null,
+      "reason": "source_task_failed",
+      "source_error": {
+        "stage": "answer",
+        "type": "RuntimeError"
+      },
+      "status": "failed"
+    },
+    {
+      "evidence": null,
+      "expected": null,
+      "id": "synthetic-count-green-squares-v1",
+      "image_sha256": "fc6544e26fe3323ec490f09b7454919d4e313343277578c79eb0768b228c1e7a",
+      "normalized_answer": "there are three.",
+      "raw_answer": "There are three.",
+      "reason": "unsupported_answer_or_question",
+      "source_error": null,
+      "status": "abstained"
+    },
+    {
+      "evidence": {
+        "components": {
+          "blue": [
+            {
+              "bottom": 65,
+              "left": 78,
+              "pixels": 797,
+              "right": 111,
+              "shape": "circle",
+              "top": 32
+            }
+          ],
+          "green": [],
+          "red": [
+            {
+              "bottom": 64,
+              "left": 16,
+              "pixels": 1024,
+              "right": 48,
+              "shape": "square",
+              "top": 32
+            }
+          ]
+        },
+        "image_bytes": 37028,
+        "image_sha256": "516df12e0a65c4b31de2fcec662b54476f98150c62922f4dbec8c4638f375b29"
+      },
+      "expected": "left",
+      "id": "synthetic-relative-left-v1",
+      "image_sha256": "516df12e0a65c4b31de2fcec662b54476f98150c62922f4dbec8c4638f375b29",
+      "normalized_answer": "left",
+      "raw_answer": "left",
+      "reason": "disjoint_horizontal_bounds",
+      "source_error": null,
+      "status": "verified"
+    }
+  ]
+}

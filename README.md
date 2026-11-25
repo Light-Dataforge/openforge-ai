@@ -125,3 +125,10 @@ Compare exact-answer prediction sets on the same tasks with
 `python -m apps.paired_evaluation REFERENCES BEFORE AFTER --seed 42`.
 [Paired evaluation](docs/paired-evaluation.md) retains abstentions and documents
 the explicit resampling workload, quantile method and inference limitations.
+
+## Interactive web workspace
+
+The [visual workspace](web/index.html) provides a browser pixel-verification lab,
+saved replay inspection, evidence reports and evaluation artifacts. See the
+[web interface guide](docs/web-interface.md) for preview/testing and the narrow
+synthetic-geometry scope. No live model inference or SaaS backend is implied.
