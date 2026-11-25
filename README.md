@@ -2,8 +2,8 @@
 
 Early research foundation for reliable multimodal reasoning agents.
 Implemented today: an offline exact-answer evaluator with strict JSONL contracts,
-explicit abstention accounting, conditional Brier score, SHA-256 provenance,
-and versioned experiment-manifest validation.
+explicit abstention accounting, conditional Brier score, observed-byte hashes,
+versioned experiment manifests and confidence diagnostics.
 A combined multimodal pilot adds original PNG fixtures, a bounded raw-answer
 runner and an optional pinned local model adapter. No live model run, training or
 general agent execution is claimed.
@@ -37,8 +37,9 @@ Matching is case-sensitive, exact string equality without normalization.
 The three example records are original synthetic accounting fixtures, not model
 outputs or a multimodal benchmark. Their scores only demonstrate the evaluator.
 
-For development checks, install `requirements-dev.txt`, then run `ruff check core tests`,
-`ruff format --check core tests` and `mypy`. Only development tooling has dependencies.
+For development checks, install `requirements-dev.txt`, then run
+`ruff check core apps tests`, `ruff format --check core apps tests` and `mypy core apps`.
+Only development tooling has dependencies on the model-free path.
 
 ## Architecture and development
 
@@ -55,10 +56,11 @@ See [experiment manifests](docs/experiment-manifests.md),
 one licensed VLM; establish a pinned baseline; compare budget-matched verification;
 then add permission-scoped tools and a research dashboard.
 
-Current limitations: exact matching cannot judge free-form correctness, ground
-answers in images or verify evidence. No calibration curve, uncertainty interval,
-latency/cost tracking, semantic judge, persistent experiment store or dependency
-security scanner exists. Inputs are bounded local files, not untrusted streams.
+Current limitations: exact matching cannot judge free-form correctness or visual
+grounding. The separate pixel verifier handles only documented synthetic geometry.
+Confidence diagnostics are descriptive; no uncertainty intervals or real model
+results exist. The pilot records latency but has no cloud cost meter, semantic
+judge or persistent experiment store. Inputs are bounded regular local files.
 MIT license applies to original code and synthetic fixtures only.
 
 The [zero-cost compute pilot](docs/free-compute-pilot.md) documents the pinned
@@ -114,3 +116,7 @@ explicit live opt-ins, retained failures, artifacts and privacy limits.
 Evaluation/experiment inputs must be regular local files. The
 [regular-input contract](docs/regular-evaluation-inputs.md) rejects pipes and leaf
 symlinks before reading, preventing indefinite waits for a pipe writer.
+
+Inspect declared confidence with `python -m apps.confidence_diagnostics REFERENCES PREDICTIONS --bins 10`.
+[Diagnostic semantics](docs/confidence-diagnostics.md) cover reliability bins,
+abstention-aware coverage and whole-tie selective risk; no model result is implied.

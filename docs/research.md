@@ -40,6 +40,6 @@ revision. Do not infer scientific findings from the three synthetic CLI fixtures
 
 Model selection criteria: license compatible with intended use; image support;
 fully pinned artifacts; documented processor; CPU feasibility or separately
-approved GPU budget; controlled generation; failure observability. No model has
-been selected or downloaded. GPU training and paid inference are out of scope
-until resources and approval exist.
+approved GPU budget; controlled generation; failure observability. An optional pinned model candidate and adapter are now documented in
+[pilot-model-adapter.md](pilot-model-adapter.md); no actual model experiment or
+training is claimed. Paid inference remains outside the $0 budget.
