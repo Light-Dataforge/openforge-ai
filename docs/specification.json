@@ -7,13 +7,13 @@
   ],
   "proposed_repository": "Light-Dataforge/openforge-ai",
   "mission": "Research reliable image-grounded reasoning agents with evidence-based verification.",
-  "status": "Evaluation foundation PR #2 passes CI; experiment-manifest validation proposed as a dependent draft PR. Independent reviews pending.",
+  "status": "Local evaluator, optional adapter, synthetic pixel verification, saved-run reports/comparisons, source receipts and workflow are implemented on dependent draft branches. Independent review and a real model pilot remain pending.",
   "architecture": [
     "core/evaluation: implemented offline evaluator",
-    "core/model_adapters and multimodal: next licensed VLM and processor boundary",
+    "core/model_adapters and multimodal: optional pinned VLM adapter and original synthetic visual fixtures",
     "core/reasoning: structured planning and intermediate validation",
     "core/agent_runtime and tool_execution: capability-scoped actions",
-    "core/verification: evidence-linked outcomes",
+    "core/verification: implemented narrow pixel-based claim checks and retained evidence",
     "apps API/worker/dashboard and research reports added when functional"
   ],
   "functional_requirements": [
@@ -46,7 +46,7 @@
         "Metric accounting, provenance, malformed input and real CLI"
       ],
       "dependencies": [],
-      "status": "PR #2 passes CI on Python 3.12\u20133.14; independent review pending."
+      "status": "Implemented on foundation and dependent draft branches; independent review pending."
     },
     {
       "id": "OF-02",
@@ -64,7 +64,7 @@
       "dependencies": [
         "OF-01 contract review"
       ],
-      "status": "Implemented on dependent feature branch; 24 combined tests pass locally; review dependency remains."
+      "status": "Implemented versioned manifest validation; declaration validity does not authenticate model execution."
     },
     {
       "id": "OF-03",
@@ -82,7 +82,24 @@
       "dependencies": [
         "OF-02",
         "Model/dataset license review"
-      ]
+      ],
+      "status": "Optional pinned candidate adapter and free notebook workflow implemented; actual model inference and cloud runtime validation not recorded."
+    },
+    {
+      "id": "OF-04",
+      "title": "Descriptive confidence and selective-risk diagnostics",
+      "problem": "Declared confidence needs explicit bin/threshold accounting without hiding abstentions or breaking ties favorably.",
+      "implementation": "Fixed-width reliability bins with answered-conditional ECE; whole-confidence-tie selective risk-coverage steps.",
+      "acceptance": [
+        "Null empty-bin metrics and all-abstain ECE",
+        "Coverage uses all reference tasks",
+        "Equal-confidence groups admitted together",
+        "No model or statistical result claimed"
+      ],
+      "dependencies": [
+        "OF-01 validated inputs"
+      ],
+      "status": "Implementation and tests in current dependent branch; review pending."
     }
   ],
   "testing_strategy": [
