@@ -1,9 +1,9 @@
 name: Document workspace frontend
 on:
   push:
-    paths: ['apps/document_workspace/**', '.github/workflows/document-workspace.yml']
+    paths: ['tests/web/**', 'apps/document_workspace/**', '.github/workflows/document-workspace.yml']
   pull_request:
-    paths: ['apps/document_workspace/**', '.github/workflows/document-workspace.yml']
+    paths: ['tests/web/**', 'apps/document_workspace/**', '.github/workflows/document-workspace.yml']
 permissions:
   contents: read
 jobs:
@@ -15,3 +15,4 @@ jobs:
         with:
           node-version: '22'
       - run: node --check apps/document_workspace/static/app.mjs
+      - run: node --test tests/web/*.test.mjs
