@@ -325,7 +325,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 sources = store.search(
                     conversation["project_id"],
-                    retrieval_query(question, thread["messages"]),
+                    retrieval_query(question, []),
                     document_id=data.get("document_id"),
                     limit=4,
                 )

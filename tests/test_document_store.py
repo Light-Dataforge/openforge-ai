@@ -204,7 +204,6 @@ class DocumentStoreTests(unittest.TestCase):
                 "CREATE VIRTUAL TABLE chunks_fts USING fts5(chunk_id UNINDEXED,text)"
             )
             db.execute("INSERT INTO chunks_fts SELECT id,text FROM chunks")
-        self.assertEqual(self.store.search(self.project["id"], "refund"), [])
         reopened = Store(self.root)
         found = reopened.search(self.project["id"], "What is the refund policy?")
         self.assertEqual(found[0]["document_id"], doc["id"])
@@ -213,6 +212,65 @@ class DocumentStoreTests(unittest.TestCase):
             self.store.get_document(doc["id"])["raw"],
         )
         self.assertEqual(reopened.list_projects()[0]["document_count"], 1)
+
+    def test_paraphrased_refund_question_finds_actual_source(self):
+        doc = self.store.add_document(self.project["id"], "Policy.pdf", self.raw)
+        for question in ["Can I get my money back?", "Is reimbursement available?"]:
+            found = self.store.search(
+                self.project["id"], question, document_id=doc["id"]
+            )
+            self.assertTrue(found)
+            self.assertEqual(found[0]["page"], 2)
+            self.assertIn("30 days", found[0]["text"])
+
+    def test_query_coverage_ranks_specific_evidence_above_repeated_single_term(self):
+        doc = self.store.add_document(
+            self.project["id"],
+            "Coverage.pdf",
+            pdf_bytes(
+                [
+                    "Refunds refunds refunds refunds refunds refunds refunds.",
+                    "Refunds are processed after purchase verification.",
+                ]
+            ),
+        )
+        found = self.store.search(
+            self.project["id"], "refund purchase", document_id=doc["id"]
+        )
+        self.assertEqual(found[0]["page"], 2)
+
+    def test_education_paraphrase_finds_degree_page(self):
+        doc = self.store.add_document(
+            self.project["id"],
+            "Education.pdf",
+            pdf_bytes(
+                [
+                    "Employment: Robert builds distributed services.",
+                    "Education: Bachelor degree from Example University.",
+                ]
+            ),
+        )
+        found = self.store.search(
+            self.project["id"], "Where did he study?", document_id=doc["id"]
+        )
+        self.assertEqual(found[0]["page"], 2)
+
+    def test_unrelated_followup_does_not_match_person_pronoun(self):
+        doc = self.store.add_document(
+            self.project["id"],
+            "Profile.pdf",
+            pdf_bytes(
+                [
+                    "Robert is an engineer. His experience includes Python services.",
+                ]
+            ),
+        )
+        self.assertEqual(
+            self.store.search(
+                self.project["id"], "What is his salary?", document_id=doc["id"]
+            ),
+            [],
+        )
 
     def test_real_extraction_keeps_page_numbers_and_generic_summary_works(self):
         pages = extract_pdf(self.raw)

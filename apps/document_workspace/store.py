@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 import sqlite3
 import uuid
 from collections.abc import Iterator
@@ -15,6 +14,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from .extractor import MAX_PDF_BYTES, extract_pdf
+from .retrieval import query_groups, rank_passages
 
 MAX_STORAGE = 200 * 1024 * 1024  # Uploaded PDF bytes, not physical SQLite disk usage.
 MAX_DOCUMENTS = 200
@@ -334,61 +334,10 @@ class Store:
                 document = self._required(db, "documents", document_id)
                 if document["project_id"] != project_id:
                     raise ValueError("Document is not in this project.")
-            stop = {
-                "what",
-                "which",
-                "where",
-                "when",
-                "does",
-                "that",
-                "this",
-                "with",
-                "from",
-                "have",
-                "about",
-                "would",
-                "could",
-                "should",
-                "please",
-                "tell",
-                "document",
-                "documents",
-                "the",
-                "are",
-                "and",
-                "for",
-                "how",
-                "can",
-                "you",
-                "give",
-                "your",
-                "its",
-                "into",
-                "is",
-                "it",
-                "of",
-                "to",
-                "in",
-                "an",
-                "a",
-                "on",
-                "or",
-                "be",
-                "as",
-                "by",
-                "at",
-                "me",
-                "my",
-                "we",
-                "us",
-            }
+            groups = query_groups(q)
             tokens = list(
-                dict.fromkeys(
-                    word.lower()
-                    for word in re.findall(r"\w{2,}", q)
-                    if word.lower() not in stop
-                )
-            )[:12]
+                dict.fromkeys(word for group in groups for word in sorted(group))
+            )
             scope = "d.project_id=?" + (" AND d.id=?" if document_id else "")
             parameters: list[Any] = [project_id] + (
                 [document_id] if document_id else []
@@ -418,11 +367,12 @@ class Store:
                     JOIN documents d ON d.id=c.document_id
                     WHERE chunks_fts MATCH ? AND {scope} ORDER BY
                     score,c.document_id,c.page,c.ordinal LIMIT ?""",
-                    (query, *parameters, limit),
+                    (query, *parameters, 60),
                 ).fetchall()
             else:
                 rows = []
-            return [dict(row) for row in rows]
+            results = [dict(row) for row in rows]
+            return (rank_passages(q, results) if not overview else results)[:limit]
 
     def create_conversation(self, project_id: str, title: str) -> dict[str, Any]:
         record = {

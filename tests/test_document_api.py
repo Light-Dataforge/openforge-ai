@@ -66,6 +66,37 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_missing_followup_fact_does_not_retrieve_previous_person_name(self):
+        doc = self.app.store.add_document(
+            self.project["id"],
+            "Profile.pdf",
+            pdf_bytes(
+                [
+                    "Robert is an engineer who writes Python services.",
+                ]
+            ),
+        )
+        conversation = self.app.store.create_conversation(self.project["id"], "Profile")
+        self.app.store.add_message(
+            conversation["id"], "user", "Who is Robert?", [], None
+        )
+        with patch(
+            "apps.document_workspace.model._request",
+            side_effect=AssertionError("No evidence means no inference"),
+        ):
+            status, result = self.request(
+                "POST",
+                f"/api/conversations/{conversation['id']}/messages",
+                {
+                    "text": "What is his salary?",
+                    "document_id": doc["id"],
+                },
+            )
+        self.assertEqual(status, 200)
+        answer = result["messages"][1]
+        self.assertEqual(answer["citations"], [])
+        self.assertIn("couldn’t find", answer["content"])
+
     def test_edit_note_persists_source_and_rejects_stale_or_cross_project_edits(self):
         doc, _ = self.upload()
         _, created = self.request(
