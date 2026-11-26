@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from . import model
+from .reports import research_brief
 from .retrieval import retrieval_query
 from .store import Store
 
@@ -177,6 +178,15 @@ class Handler(BaseHTTPRequestHandler):
             )
         elif path == "/api/projects":
             self._json({"projects": store.list_projects()})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/brief", path):
+            brief = research_brief(store.project_detail(match[1]))
+            self._send(
+                brief.encode("utf-8"),
+                "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="research-brief.md"'
+                },
+            )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/search", path):
             question = text(query.get("q", [""])[0])
             self._json(

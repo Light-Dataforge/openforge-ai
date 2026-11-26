@@ -66,6 +66,27 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_research_brief_exports_only_selected_project_findings_and_sources(self):
+        doc, _ = self.upload()
+        self.request(
+            "POST",
+            f"/api/projects/{self.project['id']}/notes",
+            {
+                "text": "Refund window is 30 days.",
+                "document_id": doc["id"],
+                "page": 2,
+            },
+        )
+        other = self.app.store.create_project("Private other project", "")
+        self.app.store.add_note(other["id"], "Do not include this finding")
+        status, raw = self.request("GET", f"/api/projects/{self.project['id']}/brief")
+        self.assertEqual(status, 200)
+        content = raw.decode()
+        self.assertIn("Refund window is 30 days.", content)
+        self.assertIn("Source: Policy.pdf, page 2", content)
+        self.assertNotIn("Do not include", content)
+        self.assertEqual(self.request("GET", "/api/projects/missing/brief")[0], 404)
+
     def test_actual_pdf_upload_retrieval_conversation_citation_notes_and_reload(self):
         doc, raw = self.upload()
         status, original = self.request("GET", f"/api/documents/{doc['id']}/file")
