@@ -568,3 +568,28 @@ class Store:
                 record,
             )
             return record
+
+    def update_note(
+        self, project_id: str, note_id: str, text: str, expected_text: Any
+    ) -> dict[str, Any]:
+        text = _text(text, "Note", 10_000)
+        if not isinstance(expected_text, str) or len(expected_text) > 10_000:
+            raise ValueError("The original note text is required.")
+        with self._db() as db:
+            row = db.execute(
+                "SELECT * FROM notes WHERE id=? AND project_id=?",
+                (note_id, project_id),
+            ).fetchone()
+            if row is None:
+                raise KeyError(note_id)
+            if row["text"] != expected_text:
+                raise ValueError(
+                    "This note changed elsewhere. Reload the workspace before editing."
+                )
+            changed = db.execute(
+                "UPDATE notes SET text=? WHERE id=? AND project_id=? AND text=?",
+                (text, note_id, project_id, expected_text),
+            ).rowcount
+            if changed != 1:
+                raise ValueError("This note changed elsewhere. Reload before editing.")
+            return dict(row, text=text)

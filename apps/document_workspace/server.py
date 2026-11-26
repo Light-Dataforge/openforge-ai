@@ -287,6 +287,18 @@ class Handler(BaseHTTPRequestHandler):
                 },
                 201,
             )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/notes/([^/]+)", path):
+            data = self._data()
+            self._json(
+                {
+                    "note": store.update_note(
+                        match[1],
+                        match[2],
+                        text(data.get("text"), 10000),
+                        data.get("expected_text"),
+                    )
+                }
+            )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/notes", path):
             data = self._data()
             self._json(

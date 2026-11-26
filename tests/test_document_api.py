@@ -66,6 +66,59 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_edit_note_persists_source_and_rejects_stale_or_cross_project_edits(self):
+        doc, _ = self.upload()
+        _, created = self.request(
+            "POST",
+            f"/api/projects/{self.project['id']}/notes",
+            {
+                "text": "Original finding",
+                "document_id": doc["id"],
+                "page": 2,
+            },
+        )
+        note = created["note"]
+        route = f"/api/projects/{self.project['id']}/notes/{note['id']}"
+        status, updated = self.request(
+            "POST",
+            route,
+            {
+                "text": "Revised finding",
+                "expected_text": "Original finding",
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(updated["note"]["document_id"], doc["id"])
+        self.assertEqual(updated["note"]["page"], 2)
+        self.assertEqual(
+            self.request(
+                "POST",
+                route,
+                {
+                    "text": "Stale overwrite",
+                    "expected_text": "Original finding",
+                },
+            )[0],
+            400,
+        )
+        other = self.app.store.create_project("Other project", "")
+        self.assertEqual(
+            self.request(
+                "POST",
+                f"/api/projects/{other['id']}/notes/{note['id']}",
+                {
+                    "text": "Cross project",
+                    "expected_text": "Revised finding",
+                },
+            )[0],
+            404,
+        )
+        _, detail = self.request("GET", f"/api/projects/{self.project['id']}")
+        self.assertEqual(detail["notes"][0]["text"], "Revised finding")
+        _, brief = self.request("GET", f"/api/projects/{self.project['id']}/brief")
+        self.assertIn(b"Revised finding", brief)
+        self.assertNotIn(b"Original finding", brief)
+
     def test_research_brief_exports_only_selected_project_findings_and_sources(self):
         doc, _ = self.upload()
         self.request(
