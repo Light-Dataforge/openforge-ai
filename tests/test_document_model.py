@@ -41,6 +41,65 @@ class DocumentModelTests(unittest.TestCase):
         self.assertIn("context only, not evidence", prompt)
         self.assertIn("What is the refund policy?", prompt)
 
+    def test_structured_answer_uses_validated_source_ids(self):
+        with (
+            patch.object(model, "health", return_value={"available": True}),
+            patch.object(
+                model,
+                "_request",
+                return_value={
+                    "message": {
+                        "content": (
+                            '{"answer":"Refunds within 30 days.","source_ids":[1]}'
+                        )
+                    }
+                },
+            ),
+        ):
+            content, mode = model.answer("Refund period?", self.sources)
+        self.assertEqual(mode, "local_model")
+        self.assertEqual(content, "Refunds within 30 days. [1]")
+
+    def test_structured_answer_rejects_invalid_source_ids(self):
+        for refs in ["[0]", "[2]", "[true]", "[]"]:
+            with (
+                patch.object(model, "health", return_value={"available": True}),
+                patch.object(
+                    model,
+                    "_request",
+                    return_value={
+                        "message": {
+                            "content": '{"answer":"Unsupported","source_ids":'
+                            + refs
+                            + "}"
+                        }
+                    },
+                ),
+            ):
+                content, mode = model.answer("Refund period?", self.sources)
+            self.assertEqual(mode, "source_excerpts")
+            self.assertNotIn("Unsupported", content)
+
+    def test_programming_languages_excludes_tools_and_preserves_evidence(self):
+        sources = [
+            dict(
+                self.sources[0],
+                text=(
+                    "Tech: Java, Python, Scala, Apache Spark, Kafka, AWS, S3, DynamoDB."
+                ),
+            )
+        ]
+        with patch.object(model, "_request", side_effect=AssertionError("not needed")):
+            content, mode = model.answer(
+                "What programming languages does he use?", sources
+            )
+        self.assertEqual(mode, "source_excerpts")
+        self.assertIn("Python [1]", content)
+        self.assertIn("Scala [1]", content)
+        self.assertNotIn("AWS", content)
+        self.assertNotIn("Spark", content)
+        self.assertNotIn("Ruby", content)
+
     def test_missing_or_malformed_runtime_is_explicitly_unavailable(self):
         for outcome in [OSError("unavailable"), {"models": None}, {"models": []}]:
             options = (

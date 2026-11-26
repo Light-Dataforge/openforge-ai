@@ -31,7 +31,7 @@ inspect original pages. Summaries retrieve initial passages and may omit later
 material. Extraction may lose layout and does not perform OCR. Encrypted/image-only
 PDFs return actionable errors rather than fake parsed content.
 
-A local Ollama service with qwen2.5:0.5b can provide drafting through
+A local Ollama service with qwen2.5:1.5b can provide drafting through
 127.0.0.1:11434. Provider requests bypass HTTP proxies and contain only the selected
 retrieved passages/question. No tools or external endpoints are exposed to the
 model. A generated answer must include valid source references; failures return
@@ -55,3 +55,5 @@ Private storage remains outside the Git checkout. No authentication, remote team
 access, billing, cloud storage, public file endpoint or public backend is included.
 Do not bind this single-user server to a public interface. GitHub Pages cannot run
 this Python/SQLite backend; the old static research demo is separate.
+
+Saved notes can be downloaded as a Markdown research brief with source filenames and page numbers. Explicit programming-language questions use conservative extraction of known language names from retrieved passages; this can miss unlisted languages and does not establish proficiency.
