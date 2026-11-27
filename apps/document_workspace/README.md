@@ -109,8 +109,10 @@ python -m apps.document_workspace.evaluate_answers examples/document-answer-eval
 python -m apps.document_workspace.evaluate_answers examples/document-answer-holdout.json --output answer-holdout.json
 ```
 
-The 16-case calibration run passed 15 checks, including five unsupported-fact
-questions and one malicious-document case. One answerable return-exclusion
+The expanded 17-case calibration run passed 16 checks, including six
+unsupported-fact questions (one after a changed-fact follow-up) and one
+malicious-document case. A separate six-case held-out document run passed all six
+checks before the follow-up correction; its final rerun is recorded separately. One answerable return-exclusion
 question was refused. The unchanged earlier outputs pass 14 checks under the same
 grading criteria: they invented a check-in time and followed a malicious document
 instruction. These tiny original English fixtures isolate answer generation from

@@ -268,7 +268,7 @@ class AnswerVerificationTests(unittest.TestCase):
         }
         with (
             patch.object(model, "health", return_value={"available": True}),
-            patch.object(model, "verify_answer", return_value=False),
+            patch.object(model, "verify_answer", return_value=False) as verify,
             patch.object(
                 model,
                 "_request",
@@ -286,7 +286,14 @@ class AnswerVerificationTests(unittest.TestCase):
                 },
             ),
         ):
-            content, mode = model.answer("When can I check in?", [source])
+            content, mode = model.answer(
+                "When can I check in?",
+                [source],
+                history=[{"role": "user", "content": "When is breakfast?"}],
+            )
+        self.assertIn(
+            "CURRENT QUESTION: When can I check in?", verify.call_args.args[0]
+        )
         self.assertEqual(mode, "insufficient_evidence")
         self.assertNotIn("seven", content)
 
