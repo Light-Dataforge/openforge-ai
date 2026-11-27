@@ -14,7 +14,7 @@ from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from . import model
-from .reports import research_brief
+from .reports import conversation_record, research_brief
 from .retrieval import retrieval_query
 from .store import Store
 
@@ -211,6 +211,15 @@ class Handler(BaseHTTPRequestHandler):
                 headers={
                     "Content-Disposition": "inline; filename*=UTF-8''"
                     + quote(document["name"], safe="")
+                },
+            )
+        elif match := re.fullmatch(r"/api/conversations/([^/]+)/export", path):
+            report = conversation_record(store.get_conversation(match[1]))
+            self._send(
+                report.encode("utf-8"),
+                "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="conversation.md"'
                 },
             )
         elif match := re.fullmatch(r"/api/conversations/([^/]+)", path):

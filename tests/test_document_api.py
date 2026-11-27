@@ -66,6 +66,45 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_conversation_export_keeps_order_modes_and_only_cited_evidence(self):
+        doc, _ = self.upload()
+        conversation = self.app.store.create_conversation(
+            self.project["id"], "Refund question"
+        )
+        sources = self.app.store.search(
+            self.project["id"], "Summarize this document", document_id=doc["id"]
+        )
+        self.app.store.add_message(
+            conversation["id"], "user", "What is the refund period?", [], None
+        )
+        self.app.store.add_message(
+            conversation["id"],
+            "assistant",
+            "Refunds within 30 days [2].",
+            sources,
+            "source_excerpts",
+        )
+        other = self.app.store.create_conversation(
+            self.project["id"], "Other conversation"
+        )
+        self.app.store.add_message(
+            other["id"], "user", "Unrelated private question", [], None
+        )
+        status, body = self.request(
+            "GET", f"/api/conversations/{conversation['id']}/export"
+        )
+        self.assertEqual(status, 200)
+        text = body.decode()
+        self.assertLess(text.index("## Question"), text.index("## Answer"))
+        self.assertIn("Response mode: Source excerpts", text)
+        self.assertIn("Source [2]: Policy.pdf, page 2", text)
+        self.assertIn("> Refunds are available within 30 days", text)
+        self.assertNotIn("Source [1]", text)
+        self.assertNotIn("Unrelated private question", text)
+        self.assertEqual(
+            self.request("GET", "/api/conversations/missing/export")[0], 404
+        )
+
     def test_missing_followup_fact_does_not_retrieve_previous_person_name(self):
         doc = self.app.store.add_document(
             self.project["id"],
