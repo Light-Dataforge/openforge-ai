@@ -24,7 +24,7 @@ def retrieval_query(question: str, history: list[dict[str, Any]]) -> str:
                 "tech",
             ]
         )
-    if terms & {"who", "background"}:
+    if "background" in terms or re.search(r"\bwho\s+is\b", query, re.IGNORECASE):
         expansions.extend(["professional profile", "experience"])
     # Resolve only to the most recent explicit named subject, never to assistant
     # text or an earlier project's content. Keep the current question dominant.

@@ -13,6 +13,7 @@ from importlib import import_module
 from pathlib import Path
 from typing import Any
 
+from .retrieval import retrieval_query
 from .semantic import EMBED_MODEL, SEMANTIC_THRESHOLD, HybridRanker
 from .store import Store
 
@@ -58,7 +59,10 @@ def evaluate(fixture: Path) -> dict[str, Any]:
         for question in data["questions"]:
             started = time.monotonic()
             lexical = store.search(
-                project["id"], question["text"], document["id"], limit=4
+                project["id"],
+                retrieval_query(question["text"], []),
+                document["id"],
+                limit=4,
             )
             hybrid, mode = ranker.rank(question["text"], lexical, candidates, limit=4)
             expected = question["expected_page"]

@@ -151,6 +151,20 @@ class DocumentAPITests(unittest.TestCase):
         answer = result["messages"][1]
         self.assertEqual(answer["citations"], [])
         self.assertIn("couldn’t find", answer["content"])
+        with patch(
+            "apps.document_workspace.model._request",
+            side_effect=AssertionError("No evidence means no inference"),
+        ):
+            status, result = self.request(
+                "POST",
+                f"/api/conversations/{conversation['id']}/messages",
+                {
+                    "text": "Who won the baseball championship?",
+                    "document_id": doc["id"],
+                },
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(result["messages"][1]["citations"], [])
 
     def test_edit_note_persists_source_and_rejects_stale_or_cross_project_edits(self):
         doc, _ = self.upload()
