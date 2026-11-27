@@ -426,7 +426,13 @@ class Store:
         content = _text(content, "Message", 30_000)
         if mode is not None and (
             not isinstance(mode, str)
-            or mode not in {"local_model", "source_excerpts", "unavailable"}
+            or mode
+            not in {
+                "local_model",
+                "source_excerpts",
+                "unavailable",
+                "insufficient_evidence",
+            }
         ):
             raise ValueError("Invalid message mode.")
         if not isinstance(citations, (list, type(None))) or (

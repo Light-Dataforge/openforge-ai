@@ -38,8 +38,7 @@ model. A generated answer must include valid source references; failures return
 explicitly labeled source excerpts. Source cards identify retrieved text, not a
 semantic proof that every generated claim is correct. No paid fallback is used.
 The runtime/model are not automatically installed or downloaded by the app.
-This environment's official runtime/model downloads timed out; no successful local
-model inference is claimed for this delivery.
+The local runtime has been exercised with the original diagnostics below.
 
 ## Resource and access scope
 
@@ -88,3 +87,34 @@ two unrelated questions. It is not a representative benchmark or an evaluation
 of generated answers, citation entailment, OCR, tables, or multilingual quality.
 
 Use `examples/document-retrieval-holdout.json` with the same command for the held-out phrasing check. It shares the original corpus and does not establish performance on independent documents. Keep calibration and hold-out results separate.
+
+
+## Generated-answer diagnostics
+
+Generation now requests exact supporting quotes and source numbers. Quotes must
+occur in the retrieved excerpts, and every cited source must have a quote. A
+second local model call checks whether the answer addresses the requested fact.
+Explicitly unsupported answers display **Insufficient evidence** and are preserved
+with that label in conversation exports. Invalid output or unavailable generation
+returns labeled source excerpts. These checks do not prove factual entailment.
+
+An obvious instruction-like passage triggers a conservative refusal before model
+inference. This heuristic can reject legitimate discussions of prompt injection;
+it is not comprehensive prompt-injection protection.
+
+Run the original excerpt-only diagnostic with a running local model:
+
+```sh
+python -m apps.document_workspace.evaluate_answers examples/document-answer-eval.json --output answer-evaluation.json
+python -m apps.document_workspace.evaluate_answers examples/document-answer-holdout.json --output answer-holdout.json
+```
+
+The 16-case calibration run passed 15 checks, including five unsupported-fact
+questions and one malicious-document case. One answerable return-exclusion
+question was refused. The unchanged earlier outputs pass 14 checks under the same
+grading criteria: they invented a check-in time and followed a malicious document
+instruction. These tiny original English fixtures isolate answer generation from
+retrieval and PDF extraction; they are not a general accuracy benchmark. String
+checks and valid citation numbers do not establish that every claim is supported.
+The verifier adds latency and may wrongly reject supported answers. All inference
+runs locally; no paid fallback is configured.

@@ -45,9 +45,10 @@ def conversation_record(thread: dict[str, Any]) -> str:
         lines.extend([f"## {role}", "", message["content"], ""])
         if message["role"] != "assistant":
             continue
-        mode = (
-            "Local model" if message.get("mode") == "local_model" else "Source excerpts"
-        )
+        mode = {
+            "local_model": "Local model",
+            "insufficient_evidence": "Insufficient evidence",
+        }.get(message.get("mode"), "Source excerpts")
         lines.extend([f"Response mode: {mode}", ""])
         references = {
             int(value) for value in re.findall(r"\[(\d+)\]", message["content"])
