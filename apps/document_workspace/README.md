@@ -120,3 +120,24 @@ retrieval and PDF extraction; they are not a general accuracy benchmark. String
 checks and valid citation numbers do not establish that every claim is supported.
 The verifier adds latency and may wrongly reject supported answers. All inference
 runs locally; no paid fallback is configured.
+
+## Evidence tables
+
+Open **Evidence tables** in a project's sidebar to investigate multiple documents
+across a set of research questions. Choose 1–10 documents, enter 1–6 questions
+(one per line), or start with the research-paper or policy presets. Each cell
+retains up to two document-scoped keyword search passages and page citations.
+This workflow does not require a running model. Retrieval matches are candidate
+evidence, not answers; a missing match does not establish absence.
+
+Open cited pages, add your own findings, and label cells Not reviewed, Supported
+(your review), or Needs follow-up. A cell without a retrieved passage cannot be
+marked Supported. Findings and review labels persist locally, and revision checks
+prevent another browser tab from silently overwriting an edit. Reopen a changed
+table before retrying a conflicting save.
+
+Tables are saved snapshots, not live queries; later uploads do not change their
+contents. Create another table for a different question set or document selection.
+The workspace allows 100 saved tables. CSV export includes one row per document
+and question, findings, review labels, source pages, and excerpts; formula-like
+text is neutralized for spreadsheet import. No paid model or cloud service is used.

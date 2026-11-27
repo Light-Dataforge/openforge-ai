@@ -66,6 +66,48 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_evidence_table_create_edit_export_and_scope(self):
+        doc, _ = self.upload()
+        base = f"/api/projects/{self.project['id']}/tables"
+        status, result = self.request(
+            "POST",
+            base,
+            {
+                "title": "Refund review",
+                "document_ids": [doc["id"]],
+                "questions": ["Refund policy?", "Support?"],
+            },
+        )
+        self.assertEqual(status, 201, result)
+        table = result["table"]
+        self.assertEqual(len(table["cells"]), 2)
+        self.assertEqual(self.request("GET", base)[1]["tables"][0]["id"], table["id"])
+        path = base + "/" + table["id"]
+        status, updated = self.request(
+            "POST",
+            path + "/cell",
+            {
+                "document_id": doc["id"],
+                "column": 0,
+                "finding": "Thirty days",
+                "review": "supported",
+                "revision": 1,
+            },
+        )
+        self.assertEqual(status, 200, updated)
+        self.assertEqual(updated["table"]["revision"], 2)
+        self.assertEqual(
+            self.request("GET", path)[1]["table"]["cells"][0]["finding"], "Thirty days"
+        )
+        status, exported = self.request("GET", path + "/export")
+        self.assertEqual(status, 200)
+        self.assertIn(b"Thirty days", exported)
+        self.assertIn(b"Policy.pdf", exported)
+        other = self.app.store.create_project("Other")["id"]
+        self.assertEqual(
+            self.request("GET", f"/api/projects/{other}/tables/{table['id']}")[0], 404
+        )
+
     def test_instruction_like_passage_persists_explicit_refusal_and_export_mode(self):
         doc = self.app.store.add_document(
             self.project["id"],

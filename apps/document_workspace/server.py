@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
-from . import model
+from . import evidence, model
 from .reports import conversation_record, research_brief
 from .retrieval import retrieval_query
 from .semantic import HybridRanker
@@ -51,6 +51,7 @@ class Application(ThreadingHTTPServer):
         self.ranker = HybridRanker() if semantic else None
         self.chat_lock = threading.BoundedSemaphore(1)
         self.upload_lock = threading.BoundedSemaphore(1)
+        self.evidence_lock = threading.BoundedSemaphore(1)
         super().__init__(address, Handler)
 
     def search(
@@ -201,6 +202,21 @@ class Handler(BaseHTTPRequestHandler):
             )
         elif path == "/api/projects":
             self._json({"projects": store.list_projects()})
+        elif match := re.fullmatch(
+            r"/api/projects/([^/]+)/tables/([^/]+)/export", path
+        ):
+            record = evidence.get_table(store, match[1], match[2])
+            self._send(
+                evidence.export_csv(record).encode("utf-8"),
+                "text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="evidence-table.csv"'
+                },
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables/([^/]+)", path):
+            self._json({"table": evidence.get_table(store, match[1], match[2])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
+            self._json({"tables": evidence.list_tables(store, match[1])})
         elif match := re.fullmatch(r"/api/projects/([^/]+)/brief", path):
             brief = research_brief(store.project_detail(match[1]))
             self._send(
@@ -313,6 +329,45 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 },
                 201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
+            data = self._data()
+            if not self.server.evidence_lock.acquire(blocking=False):
+                self._json(
+                    {"error": "Another evidence table is being built. Please wait."},
+                    503,
+                )
+                return
+            try:
+                self._json(
+                    {
+                        "table": evidence.create_table(
+                            store,
+                            match[1],
+                            data.get("title"),
+                            data.get("document_ids"),
+                            data.get("questions"),
+                        )
+                    },
+                    201,
+                )
+            finally:
+                self.server.evidence_lock.release()
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables/([^/]+)/cell", path):
+            data = self._data()
+            self._json(
+                {
+                    "table": evidence.update_cell(
+                        store,
+                        match[1],
+                        match[2],
+                        data.get("document_id"),
+                        data.get("column"),
+                        data.get("finding"),
+                        data.get("review"),
+                        data.get("revision"),
+                    )
+                }
             )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/notes/([^/]+)", path):
             data = self._data()
