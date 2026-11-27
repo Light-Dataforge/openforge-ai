@@ -543,3 +543,23 @@ class Store:
             if changed != 1:
                 raise ValueError("This note changed elsewhere. Reload before editing.")
             return dict(row, text=text)
+
+    def search_candidates(
+        self, project_id: str, document_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        with self._db() as db:
+            self._required(db, "projects", project_id)
+            if document_id is not None:
+                doc = self._required(db, "documents", document_id)
+                if doc["project_id"] != project_id:
+                    raise ValueError("Document is not in this project.")
+            scope = "d.project_id=?" + (" AND d.id=?" if document_id else "")
+            values = [project_id] + ([document_id] if document_id else [])
+            rows = db.execute(
+                f"""SELECT c.id chunk_id,c.document_id,d.name document_name,
+                c.page,c.text,0.0 score
+                FROM chunks c JOIN documents d ON d.id=c.document_id WHERE {scope}
+                ORDER BY d.id,c.page,c.ordinal LIMIT 201""",
+                values,
+            ).fetchall()
+            return [dict(row) for row in rows]

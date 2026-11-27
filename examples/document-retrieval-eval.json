@@ -1,0 +1,19 @@
+{
+  "description": "Original small English retrieval diagnostic. Not a general quality benchmark.",
+  "pages": [
+    "A password reset link is delivered to the registered email address. Reset links expire after fifteen minutes.",
+    "Subscriptions can be cancelled from billing settings. Access continues until the paid month ends.",
+    "Orders ship within two business days. Delivery tracking appears by email.",
+    "Uploaded files are deleted thirty days after account closure.",
+    "Mira earned a Bachelor of Science at Cedar University."
+  ],
+  "questions": [
+    {"text": "How do I stop my monthly plan?", "expected_page": 2},
+    {"text": "When will my package leave the warehouse?", "expected_page": 3},
+    {"text": "How long are my documents kept after I leave?", "expected_page": 4},
+    {"text": "I forgot my login secret. How do I get back into my account?", "expected_page": 1},
+    {"text": "What school did Mira attend?", "expected_page": 5},
+    {"text": "Who won the baseball championship?", "expected_page": null},
+    {"text": "Explain photosynthesis in plants", "expected_page": null}
+  ]
+}

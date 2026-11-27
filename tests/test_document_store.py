@@ -239,6 +239,16 @@ class DocumentStoreTests(unittest.TestCase):
         )
         self.assertEqual(found[0]["page"], 2)
 
+    def test_semantic_candidates_obey_project_and_document_scope(self):
+        doc = self.store.add_document(self.project["id"], "Own.pdf", self.raw)
+        other = self.store.create_project("Other", "")
+        foreign = self.store.add_document(other["id"], "Other.pdf", self.raw)
+        rows = self.store.search_candidates(self.project["id"], doc["id"])
+        self.assertTrue(rows)
+        self.assertTrue(all(row["document_id"] == doc["id"] for row in rows))
+        with self.assertRaises(ValueError):
+            self.store.search_candidates(self.project["id"], foreign["id"])
+
     def test_education_paraphrase_finds_degree_page(self):
         doc = self.store.add_document(
             self.project["id"],

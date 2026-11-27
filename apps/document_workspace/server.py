@@ -16,6 +16,7 @@ from urllib.parse import parse_qs, quote, unquote, urlsplit
 from . import model
 from .reports import conversation_record, research_brief
 from .retrieval import retrieval_query
+from .semantic import HybridRanker
 from .store import Store
 
 STATIC = Path(__file__).parent / "static"
@@ -43,11 +44,33 @@ def pairs(values: list[tuple[str, Any]]) -> dict[str, Any]:
 class Application(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, address: tuple[str, int], data_dir: Path):
+    def __init__(
+        self, address: tuple[str, int], data_dir: Path, semantic: bool = False
+    ):
         self.store = Store(data_dir)
+        self.ranker = HybridRanker() if semantic else None
         self.chat_lock = threading.BoundedSemaphore(1)
         self.upload_lock = threading.BoundedSemaphore(1)
         super().__init__(address, Handler)
+
+    def search(
+        self,
+        project_id: str,
+        question: str,
+        document_id: str | None = None,
+        limit: int = 6,
+    ) -> tuple[list[dict[str, Any]], str]:
+        lexical = self.store.search(
+            project_id, retrieval_query(question, []), document_id, limit
+        )
+        if self.ranker is None:
+            return lexical, "keyword"
+        return self.ranker.rank(
+            question,
+            lexical,
+            self.store.search_candidates(project_id, document_id),
+            limit,
+        )
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -189,15 +212,10 @@ class Handler(BaseHTTPRequestHandler):
             )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/search", path):
             question = text(query.get("q", [""])[0])
-            self._json(
-                {
-                    "results": store.search(
-                        match[1],
-                        question,
-                        document_id=query.get("document_id", [None])[0],
-                    )
-                }
+            results, retrieval_mode = self.server.search(
+                match[1], question, query.get("document_id", [None])[0]
             )
+            self._json({"results": results, "retrieval_mode": retrieval_mode})
         elif match := re.fullmatch(r"/api/projects/([^/]+)", path):
             self._json(store.project_detail(match[1]))
         elif match := re.fullmatch(r"/api/documents/([^/]+)/pages", path):
@@ -332,9 +350,9 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 return
             try:
-                sources = store.search(
+                sources, retrieval_mode = self.server.search(
                     conversation["project_id"],
-                    retrieval_query(question, []),
+                    question,
                     document_id=data.get("document_id"),
                     limit=4,
                 )
@@ -345,7 +363,9 @@ class Handler(BaseHTTPRequestHandler):
                 assistant = store.add_message(
                     match[1], "assistant", content, sources, mode
                 )
-                self._json({"messages": [user, assistant]})
+                self._json(
+                    {"messages": [user, assistant], "retrieval_mode": retrieval_mode}
+                )
             finally:
                 self.server.chat_lock.release()
         else:
@@ -356,8 +376,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--port", type=int, default=8766)
     parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument(
+        "--semantic-search",
+        action="store_true",
+        help="Enable experimental local embedding retrieval",
+    )
     args = parser.parse_args()
-    application = Application(("127.0.0.1", args.port), args.data_dir)
+    application = Application(
+        ("127.0.0.1", args.port), args.data_dir, args.semantic_search
+    )
     print(
         f"OpenForge document workspace: http://127.0.0.1:{application.server_port}",
         flush=True,

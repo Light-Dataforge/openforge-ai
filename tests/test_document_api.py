@@ -66,6 +66,22 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_hybrid_search_reports_keyword_fallback_when_runtime_is_missing(self):
+        from apps.document_workspace.semantic import HybridRanker
+
+        doc, _ = self.upload()
+        self.app.ranker = HybridRanker()
+        with patch(
+            "apps.document_workspace.semantic._request", side_effect=OSError("offline")
+        ):
+            status, result = self.request(
+                "GET",
+                f"/api/projects/{self.project['id']}/search?q=refund&document_id={doc['id']}",
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(result["retrieval_mode"], "keyword_fallback")
+        self.assertEqual(result["results"][0]["page"], 2)
+
     def test_conversation_export_keeps_order_modes_and_only_cited_evidence(self):
         doc, _ = self.upload()
         conversation = self.app.store.create_conversation(
