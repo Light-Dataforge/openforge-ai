@@ -74,6 +74,7 @@ def evaluate(fixture: Path) -> dict[str, Any]:
             )
     return {
         "scope": data["description"],
+        "split": data.get("split", "calibration"),
         "embedding_model": EMBED_MODEL,
         "semantic_threshold": SEMANTIC_THRESHOLD,
         "fusion_k": 60,

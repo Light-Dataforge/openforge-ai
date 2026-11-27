@@ -66,8 +66,9 @@ Keyword search remains the default. To test hybrid retrieval, install
 No cloud embedding API is used.
 
 The ranker merges lexical and embedding ranks using reciprocal rank fusion
-(k=60). New semantic candidates require cosine similarity at least 0.55.
-This threshold is a conservative starting point, not a probability of correctness.
+(k=60). New semantic candidates require cosine similarity at least 0.40.
+This threshold was calibrated on the small original diagnostic below; it is not
+a probability of correctness or validated across arbitrary documents.
 It examines at most 200 chunks and embeds the first 1000 characters of each;
 large projects, busy embedding work, missing runtime, invalid responses or a
 20-second embedding budget trigger keyword fallback. Responses include
@@ -85,3 +86,5 @@ python -m apps.document_workspace.evaluate_retrieval \
 This diagnostic reports top-page agreement on five answerable paraphrases and
 two unrelated questions. It is not a representative benchmark or an evaluation
 of generated answers, citation entailment, OCR, tables, or multilingual quality.
+
+Use `examples/document-retrieval-holdout.json` with the same command for the held-out phrasing check. It shares the original corpus and does not establish performance on independent documents. Keep calibration and hold-out results separate.

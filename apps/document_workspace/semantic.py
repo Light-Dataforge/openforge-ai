@@ -12,7 +12,7 @@ from typing import Any
 from .model import _request
 
 EMBED_MODEL = "all-minilm:22m"
-SEMANTIC_THRESHOLD = 0.55
+SEMANTIC_THRESHOLD = 0.40
 
 
 def unit_vector(value: Any) -> list[float]:

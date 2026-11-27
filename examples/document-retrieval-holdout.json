@@ -1,0 +1,20 @@
+{
+  "description": "Small held-out English phrasing check on the same original five-page corpus; not an independent-document benchmark.",
+  "split": "holdout",
+  "pages": [
+    "A password reset link is delivered to the registered email address. Reset links expire after fifteen minutes.",
+    "Subscriptions can be cancelled from billing settings. Access continues until the paid month ends.",
+    "Orders ship within two business days. Delivery tracking appears by email.",
+    "Uploaded files are deleted thirty days after account closure.",
+    "Mira earned a Bachelor of Science at Cedar University."
+  ],
+  "questions": [
+    {"text": "Where do they send the recovery link?", "expected_page": 1},
+    {"text": "Does cancellation cut off access immediately?", "expected_page": 2},
+    {"text": "How soon do purchased items get dispatched?", "expected_page": 3},
+    {"text": "What happens to uploaded content after closing an account?", "expected_page": 4},
+    {"text": "Which qualification did Mira receive?", "expected_page": 5},
+    {"text": "How do I bake sourdough bread?", "expected_page": null},
+    {"text": "Predict tomorrow's stock market", "expected_page": null}
+  ]
+}
