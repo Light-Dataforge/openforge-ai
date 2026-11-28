@@ -1,6 +1,6 @@
 # OpenForge document workspace
 
-Local single-user application for real PDF uploads, page citations, searchable
+Local single-user application for PDF, Word, Markdown, and plain-text uploads, source citations, searchable
 passages, saved conversations and notes. Data stays in a private local SQLite
 store outside the source checkout. A configured local Ollama model can produce
 cited answers; without it the app explicitly returns retrieved source excerpts.
@@ -19,8 +19,8 @@ Public hosting requires a separate authentication/storage/security design.
 
 ## What works now
 
-Create projects, upload text-based PDFs, read their extracted pages or original
-file, search sources, ask questions, open page citations/highlights, save notes and
+Create projects, upload text-based PDFs, Word (.docx), Markdown (.md), or text (.txt), read their extracted pages or original
+file, search sources, ask questions, open source citations/highlights, save notes and
 reopen persistent conversations. The application starts empty; the source contains
 no invented user projects, documents or answers. Original testing PDFs are separate
 QA artifacts, not embedded application data.
@@ -42,10 +42,10 @@ The local runtime has been exercised with the original diagnostics below.
 
 ## Resource and access scope
 
-Uploads:15MiB each,1–200 pages,2million extracted characters per PDF. Parsing runs
+Uploads:15MiB each,1–200 PDF pages or text sections,2million extracted characters per document. Parsing runs
 in a separate child with30s timeout,20s CPU limit and memory/output limits where
 supported. These are resource controls, not a full malicious-PDF sandbox. PDFs and
-ancestors/host are trusted. Workspace quotas cover200documents,200MiB uploaded-PDF
+ancestors/host are trusted. Workspace quotas cover200documents,200MiB uploaded-document
 bytes and20million indexed page characters; they are not a physical SQLite disk cap.
 Uploads/model requests are serialized separately. Project/document relationships
 and saved citations are checked in SQLite transactions.
@@ -126,7 +126,7 @@ runs locally; no paid fallback is configured.
 Open **Evidence tables** in a project's sidebar to investigate multiple documents
 across a set of research questions. Choose 1–10 documents, enter 1–6 questions
 (one per line), or start with the research-paper or policy presets. Each cell
-retains up to two document-scoped keyword search passages and page citations.
+retains up to two document-scoped keyword search passages and source citations.
 This workflow does not require a running model. Retrieval matches are candidate
 evidence, not answers; a missing match does not establish absence.
 
@@ -141,3 +141,32 @@ contents. Create another table for a different question set or document selectio
 The workspace allows 100 saved tables. CSV export includes one row per document
 and question, findings, review labels, source pages, and excerpts; formula-like
 text is neutralized for spreadsheet import. No paid model or cloud service is used.
+
+
+## Word, Markdown, and plain-text ingestion
+
+The upload picker and drag-and-drop accept `.pdf`, `.docx`, `.md`, and `.txt` in
+one batch. New formats work with the existing project library, reader, source
+search, chat, notes, comparison, evidence tables, and exports. No new dependency
+or external conversion service is needed.
+
+Plain text and Markdown must be UTF-8 (an optional BOM is accepted). Markdown is
+shown as literal text; scripts, images, and remote links are not executed or
+fetched. Word extraction reads body paragraphs and text in tables from
+`word/document.xml`. It omits images, headers, footers, comments, and precise
+layout. Legacy `.doc`, macro-enabled formats, and encrypted Word files are not
+supported. Original files remain available as downloads.
+
+Non-PDF text is split into stable 10,000-character **sections**. Section citations
+are not original Word page numbers. The reader, citation cards, notes, conversation
+exports, research briefs, and new evidence-table CSV exports identify sections.
+PDFs keep their actual page citations and original-PDF viewer. Existing saved
+snapshots retain their previously stored text.
+
+Extraction runs in a child with a 30-second timeout and supported OS resource
+limits. Word archives are limited to 2,000 entries, 20MiB total expanded size, and
+8MiB body XML; XML entity declarations are rejected. Nothing is extracted onto
+the filesystem from the archive, and embedded code is not executed. These bounds
+are resource controls, not a complete hostile-document isolation system. The
+existing 15MiB upload, two-million-character, and workspace quotas apply to all
+formats. Scanned PDF OCR remains unavailable.

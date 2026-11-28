@@ -21,3 +21,11 @@ test('multi-source notes retain all references without a misleading single-page 
   assert.match(note.text,/Document 3 — page 3/);
   assert.doesNotMatch(note.text,/Document 2/);
 });
+
+test('Word and text note references use sections instead of original pages', () => {
+  for (const name of ['Policy.docx','Research.md','Notes.txt']) {
+    const note = answerNote('Finding [1]', [{document_id:'doc',document_name:name,page:2}]);
+    assert.match(note.text, /section 2/);
+    assert.doesNotMatch(note.text, /page 2/);
+  }
+});

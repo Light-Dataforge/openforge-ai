@@ -241,9 +241,20 @@ class Handler(BaseHTTPRequestHandler):
             document = store.get_document(match[1])
             self._send(
                 document["raw"],
-                "application/pdf",
+                {
+                    "pdf": "application/pdf",
+                    "docx": (
+                        "application/vnd.openxmlformats-officedocument."
+                        "wordprocessingml.document"
+                    ),
+                    "txt": "text/plain; charset=utf-8",
+                    "md": "text/markdown; charset=utf-8",
+                }[document["format"]],
                 headers={
-                    "Content-Disposition": "inline; filename*=UTF-8''"
+                    "Content-Disposition": (
+                        "inline" if document["format"] == "pdf" else "attachment"
+                    )
+                    + "; filename*=UTF-8''"
                     + quote(document["name"], safe="")
                 },
             )
@@ -307,10 +318,18 @@ class Handler(BaseHTTPRequestHandler):
                 201,
             )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/documents", path):
-            if self.headers.get("Content-Type", "").split(";")[0] != "application/pdf":
-                raise ValueError("Choose a PDF file.")
+            if self.headers.get("Content-Type", "").split(";")[0] not in {
+                "application/pdf",
+                "application/octet-stream",
+                "text/plain",
+                "text/markdown",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            }:
+                raise ValueError("Choose a PDF, Word, Markdown, or plain-text file.")
             if not self.server.upload_lock.acquire(blocking=False):
-                self._json({"error": "Another PDF is being indexed. Please wait."}, 503)
+                self._json(
+                    {"error": "Another document is being indexed. Please wait."}, 503
+                )
                 return
             try:
                 name = text(

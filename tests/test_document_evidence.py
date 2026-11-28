@@ -161,7 +161,7 @@ class EvidenceTableTests(unittest.TestCase):
         self.assertEqual(len(rows), 5)
         self.assertTrue(rows[1][3].startswith("'=HYPERLINK"))
         self.assertIn("\nSecond line", rows[1][3])
-        self.assertEqual(rows[1][4], "1")
+        self.assertEqual(rows[1][4], "page 1")
         self.assertIn("does not establish absence", rows[3][-1])
 
     def test_capacity_limit_is_enforced(self):

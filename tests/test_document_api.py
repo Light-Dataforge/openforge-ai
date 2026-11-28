@@ -66,6 +66,32 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_text_upload_search_and_original_attachment(self):
+        raw = b"# Shipping\nExpress shipping takes three days."
+        status, result = self.request(
+            "POST",
+            f"/api/projects/{self.project['id']}/documents",
+            raw=raw,
+            headers={
+                "Content-Type": "application/octet-stream",
+                "X-Filename": "Shipping.md",
+            },
+        )
+        self.assertEqual(status, 201, result)
+        doc = result["document"]
+        self.assertEqual(doc["format"], "md")
+        status, result = self.request("GET", f"/api/documents/{doc['id']}/pages?page=1")
+        self.assertEqual(status, 200)
+        self.assertIn("three days", result["text"])
+        with self.opener.open(
+            self.base + f"/api/documents/{doc['id']}/file"
+        ) as response:
+            self.assertTrue(
+                response.headers["Content-Disposition"].startswith("attachment")
+            )
+            self.assertEqual(response.headers["X-Content-Type-Options"], "nosniff")
+            self.assertEqual(response.read(), raw)
+
     def test_evidence_table_create_edit_export_and_scope(self):
         doc, _ = self.upload()
         base = f"/api/projects/{self.project['id']}/tables"

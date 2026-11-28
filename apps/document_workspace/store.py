@@ -13,10 +13,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
-from .extractor import MAX_PDF_BYTES, extract_pdf
+from .extractor import MAX_PDF_BYTES, extract_document
 from .retrieval import query_groups, rank_passages
 
-MAX_STORAGE = 200 * 1024 * 1024  # Uploaded PDF bytes, not physical SQLite disk usage.
+MAX_STORAGE = 200 * 1024 * 1024  # Uploaded document bytes, not physical SQLite disk usage.
 MAX_DOCUMENTS = 200
 MAX_INDEXED_CHARS = 20_000_000
 DOC_COLUMNS = "id,project_id,name,pages,bytes,sha256,created_at"
@@ -143,18 +143,21 @@ class Store:
 
     @staticmethod
     def _document(row: sqlite3.Row) -> dict[str, Any]:
-        return {
-            key: row[key]
-            for key in (
-                "id",
-                "project_id",
-                "name",
-                "pages",
-                "bytes",
-                "sha256",
-                "created_at",
-            )
-        }
+        return dict(
+            format=Path(row["name"]).suffix.lower().lstrip("."),
+            **{
+                key: row[key]
+                for key in (
+                    "id",
+                    "project_id",
+                    "name",
+                    "pages",
+                    "bytes",
+                    "sha256",
+                    "created_at",
+                )
+            },
+        )
 
     def create_project(self, name: str, description: str = "") -> dict[str, Any]:
         record = {
@@ -245,7 +248,7 @@ class Store:
         if count >= MAX_DOCUMENTS:
             raise ValueError("Workspace document limit of 200 reached.")
         if uploaded_bytes + added_bytes > MAX_STORAGE:
-            raise ValueError("Uploaded PDF byte quota of 200 MiB reached.")
+            raise ValueError("Uploaded document byte quota of 200 MiB reached.")
         text_chars = db.execute(
             "SELECT COALESCE(sum(length(text)),0) FROM pages"
         ).fetchone()[0]
@@ -257,14 +260,16 @@ class Store:
     def add_document(self, project_id: str, name: str, raw: bytes) -> dict[str, Any]:
         name = _text(name, "Document name", 255)
         if (
-            not name.lower().endswith(".pdf")
+            Path(name).suffix.lower() not in {".pdf", ".docx", ".txt", ".md"}
             or "/" in name
             or "\\" in name
             or any(ord(ch) < 32 or ord(ch) == 127 for ch in name)
         ):
-            raise ValueError("Choose a PDF filename without directory components.")
+            raise ValueError(
+                "Choose a supported document filename without directory components."
+            )
         if not isinstance(raw, bytes) or not 1 <= len(raw) <= MAX_PDF_BYTES:
-            raise ValueError("Upload a PDF smaller than 15 MiB.")
+            raise ValueError("Upload a document smaller than 15 MiB.")
         digest = hashlib.sha256(raw).hexdigest()
         with self._db() as db:
             self._required(db, "projects", project_id)
@@ -275,7 +280,7 @@ class Store:
             if duplicate is not None:
                 return dict(self._document(duplicate), already_exists=True)
             self._check_capacity(db, len(raw), 0)
-        pages = extract_pdf(raw)
+        pages = extract_document(raw, Path(name).suffix.lower().lstrip("."))
         record = {
             "id": _id(),
             "project_id": project_id,
@@ -324,7 +329,9 @@ class Store:
                         (chunk, record["id"], page["number"], ordinal, fragment),
                     )
                     db.execute("INSERT INTO chunks_fts VALUES (?,?)", (chunk, fragment))
-        return dict(record, already_exists=False)
+        return dict(
+            record, format=Path(name).suffix.lower().lstrip("."), already_exists=False
+        )
 
     def search(
         self, project_id: str, q: str, document_id: str | None = None, limit: int = 6

@@ -173,7 +173,7 @@ def export_csv(record: dict[str, Any]) -> str:
             "Research question",
             "Review",
             "Finding",
-            "Source pages",
+            "Source locations",
             "Retrieved excerpts",
         ]
     )
@@ -187,7 +187,15 @@ def export_csv(record: dict[str, Any]) -> str:
                     record["columns"][cell["column"]],
                     cell["review"],
                     cell["finding"],
-                    "; ".join(str(source["page"]) for source in cell["sources"]),
+                    "; ".join(
+                        (
+                            "page "
+                            if source["document_name"].lower().endswith(".pdf")
+                            else "section "
+                        )
+                        + str(source["page"])
+                        for source in cell["sources"]
+                    ),
                     "\n\n".join(source["text"] for source in cell["sources"])
                     or "No matching passage found; this does not establish absence.",
                 ]
