@@ -16,4 +16,5 @@ jobs:
           node-version: '22'
       - run: node --check apps/document_workspace/static/app.mjs
       - run: node --check apps/document_workspace/static/evidence-tables.mjs
+      - run: node --check apps/document_workspace/static/research-reports.mjs
       - run: node --test tests/web/*.test.mjs

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
-from . import evidence, model
+from . import evidence, model, research
 from .reports import conversation_record, research_brief
 from .retrieval import retrieval_query
 from .semantic import HybridRanker
@@ -215,6 +215,32 @@ class Handler(BaseHTTPRequestHandler):
             )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/tables/([^/]+)", path):
             self._json({"table": evidence.get_table(store, match[1], match[2])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/candidates", path):
+            self._json({"candidates": research.candidates(store, match[1])})
+        elif match := re.fullmatch(
+            r"/api/projects/([^/]+)/reports/([^/]+)/export", path
+        ):
+            record = research.get_report(store, match[1], match[2])
+            html = query.get("format", ["md"])[0] == "html"
+            report = (
+                research.html_report(record)
+                if html
+                else research.markdown_report(record)
+            )
+            suffix = "html" if html else "md"
+            self._send(
+                report.encode("utf-8"),
+                "text/html; charset=utf-8" if html else "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": (
+                        f'attachment; filename="research-report.{suffix}"'
+                    )
+                },
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/([^/]+)", path):
+            self._json({"report": research.get_report(store, match[1], match[2])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports", path):
+            self._json({"reports": research.list_reports(store, match[1])})
         elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
             self._json({"tables": evidence.list_tables(store, match[1])})
         elif match := re.fullmatch(r"/api/projects/([^/]+)/brief", path):
@@ -348,6 +374,24 @@ class Handler(BaseHTTPRequestHandler):
                     )
                 },
                 201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports", path):
+            data = self._data()
+            self._json(
+                {
+                    "report": research.create_report(
+                        store, match[1], data.get("title"), data.get("selected")
+                    )
+                },
+                201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/([^/]+)", path):
+            self._json(
+                {
+                    "report": research.update_report(
+                        store, match[1], match[2], self._data()
+                    )
+                }
             )
         elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
             data = self._data()

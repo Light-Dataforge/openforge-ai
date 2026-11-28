@@ -66,6 +66,44 @@ class DocumentAPITests(unittest.TestCase):
         self.assertEqual(status, 201, value)
         return value["document"], raw
 
+    def test_research_report_curate_save_and_export(self):
+        doc, _ = self.upload()
+        note = self.app.store.add_note(
+            self.project["id"], "Refunds within thirty days.", doc["id"], 2
+        )
+        base = f"/api/projects/{self.project['id']}/reports"
+        self.assertEqual(
+            self.request("GET", base + "/candidates")[1]["candidates"][0]["id"],
+            "note:" + note["id"],
+        )
+        status, result = self.request(
+            "POST", base, {"title": "Policy report", "selected": ["note:" + note["id"]]}
+        )
+        self.assertEqual(status, 201, result)
+        report = result["report"]
+        path = base + "/" + report["id"]
+        status, updated = self.request(
+            "POST",
+            path,
+            {
+                "title": "Policy report",
+                "summary": "Overview",
+                "conclusion": "Check exceptions.",
+                "revision": 1,
+                "sections": [
+                    {"id": report["sections"][0]["id"], "text": "Thirty-day window."}
+                ],
+            },
+        )
+        self.assertEqual(status, 200, updated)
+        self.assertEqual(self.request("GET", path)[1]["report"]["revision"], 2)
+        for suffix in ["", "?format=html"]:
+            status, raw = self.request("GET", path + "/export" + suffix)
+            self.assertEqual(status, 200)
+            self.assertIn(b"Thirty-day window", raw)
+            self.assertIn(b"Policy.pdf", raw)
+            self.assertIn(b"page 2", raw)
+
     def test_text_upload_search_and_original_attachment(self):
         raw = b"# Shipping\nExpress shipping takes three days."
         status, result = self.request(

@@ -170,3 +170,27 @@ the filesystem from the archive, and embedded code is not executed. These bounds
 are resource controls, not a complete hostile-document isolation system. The
 existing 15MiB upload, two-million-character, and workspace quotas apply to all
 formats. Scanned PDF OCR remains unavailable.
+
+## Research report builder
+
+Use **Research reports** to turn saved notes and reviewed evidence-table findings
+into a persistent deliverable. Select up to 20 findings, write an overview and
+conclusion, edit the finding text, reorder or remove sections, preview the report,
+and download Markdown or a self-contained printable HTML file. Use the browser's
+Print command on the downloaded HTML to print or save it as a PDF.
+
+Sources are copied from server-owned project records when a report is created.
+Later note or table edits do not silently alter a report. Edits preserve source
+snapshots; revision checks reject conflicting saves from another tab. Downloads
+represent the saved version and are hidden while changes are unsaved. Project
+switching requires saving a dirty report; a page reload still loses unsaved edits.
+
+The builder includes all saved notes and evidence-table cells with nonempty
+findings marked Supported or Needs follow-up. These labels are the user's review,
+not proof of support. Project notes without linked sources remain explicitly
+unlinked in the editor and exports. The builder does not generate conclusions or
+verify edited claims. Report text is limited to 12,000 characters, with at most
+100 reports per workspace. Exports retain source filenames, page or section
+numbers, retrieved passages, and the original review labels. HTML export escapes
+all user content and uses no scripts or remote assets. No model or paid service
+is required for this workflow.

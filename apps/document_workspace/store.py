@@ -86,6 +86,10 @@ class Store:
                     conversations(id),role TEXT NOT NULL,
                     content TEXT NOT NULL,citations TEXT NOT NULL,mode
                     TEXT,created_at TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS research_reports (
+                    id TEXT PRIMARY KEY,project_id TEXT NOT NULL REFERENCES
+                    projects(id),title TEXT NOT NULL,updated_at TEXT NOT NULL,
+                    snapshot TEXT NOT NULL);
                 CREATE TABLE IF NOT EXISTS evidence_tables (
                     id TEXT PRIMARY KEY,project_id TEXT NOT NULL REFERENCES
                     projects(id),title TEXT NOT NULL,created_at TEXT NOT NULL,
