@@ -1,0 +1,519 @@
+"""Single-user loopback document workspace with private persistent local storage."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import mimetypes
+import re
+import sqlite3
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, quote, unquote, urlsplit
+
+from . import evidence, model, research
+from .reports import conversation_record, research_brief
+from .retrieval import retrieval_query
+from .semantic import HybridRanker
+from .store import Store
+
+STATIC = Path(__file__).parent / "static"
+MAX_UPLOAD = 15 * 1024 * 1024
+MAX_JSON = 64 * 1024
+mimetypes.add_type("text/javascript", ".mjs")
+
+
+def text(value: Any, maximum: int = 4000) -> str:
+    if not isinstance(value, str) or not value.strip() or len(value) > maximum:
+        raise ValueError("Enter nonempty text within the allowed length.")
+    value.encode("utf-8")
+    return value.strip()
+
+
+def pairs(values: list[tuple[str, Any]]) -> dict[str, Any]:
+    result = {}
+    for key, value in values:
+        if key in result:
+            raise ValueError("Duplicate JSON fields are not accepted.")
+        result[key] = value
+    return result
+
+
+class Application(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def __init__(
+        self, address: tuple[str, int], data_dir: Path, semantic: bool = False
+    ):
+        self.store = Store(data_dir)
+        self.ranker = HybridRanker() if semantic else None
+        self.chat_lock = threading.BoundedSemaphore(1)
+        self.upload_lock = threading.BoundedSemaphore(1)
+        self.evidence_lock = threading.BoundedSemaphore(1)
+        super().__init__(address, Handler)
+
+    def search(
+        self,
+        project_id: str,
+        question: str,
+        document_id: str | None = None,
+        limit: int = 6,
+    ) -> tuple[list[dict[str, Any]], str]:
+        lexical = self.store.search(
+            project_id, retrieval_query(question, []), document_id, limit
+        )
+        if self.ranker is None:
+            return lexical, "keyword"
+        return self.ranker.rank(
+            question,
+            lexical,
+            self.store.search_candidates(project_id, document_id),
+            limit,
+        )
+
+
+class Handler(BaseHTTPRequestHandler):
+    server: Application
+    protocol_version = "HTTP/1.0"
+
+    def log_message(self, format: str, *args: Any) -> None:
+        # Filenames, document text, questions and conversation paths stay out of logs.
+        return
+
+    def _allowed(self, *, write: bool = False) -> bool:
+        port = self.server.server_port
+        hosts = {f"127.0.0.1:{port}", f"localhost:{port}"}
+        if self.headers.get("Host") not in hosts:
+            self._json(
+                {"error": "This application accepts loopback requests only."}, 403
+            )
+            return False
+        origin = self.headers.get("Origin")
+        if origin is not None and origin not in {f"http://{host}" for host in hosts}:
+            self._json({"error": "Cross-origin access is not allowed."}, 403)
+            return False
+        if write and self.headers.get("X-OpenForge-Request") != "1":
+            self._json({"error": "This action must originate from the workspace."}, 403)
+            return False
+        if self.headers.get("Transfer-Encoding"):
+            self._json({"error": "Chunked request bodies are not supported."}, 400)
+            return False
+        return True
+
+    def _send(
+        self,
+        raw: bytes,
+        content_type: str,
+        status: int = 200,
+        headers: dict[str, str] | None = None,
+    ) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(raw)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "SAMEORIGIN")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; "
+            "connect-src 'self'; frame-src 'self' blob:; "
+            "object-src 'self' blob:; base-uri 'none'; form-action 'self'",
+        )
+        for key, value in (headers or {}).items():
+            self.send_header(key, value)
+        self.end_headers()
+        try:
+            self.wfile.write(raw)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
+    def _json(self, value: Any, status: int = 200) -> None:
+        self._send(
+            json.dumps(value, ensure_ascii=True, allow_nan=False).encode(),
+            "application/json; charset=utf-8",
+            status,
+        )
+
+    def _body(self, maximum: int) -> bytes:
+        try:
+            length = int(self.headers.get("Content-Length", "-1"))
+        except ValueError as exc:
+            raise ValueError("A valid Content-Length is required.") from exc
+        if length < 0:
+            raise ValueError("A request body length is required.")
+        if length > maximum:
+            raise OverflowError("This request exceeds its size limit.")
+        self.connection.settimeout(30)
+        raw = self.rfile.read(length)
+        if len(raw) != length:
+            raise ValueError("The upload was incomplete. Please retry.")
+        return raw
+
+    def _data(self) -> dict[str, Any]:
+        if self.headers.get("Content-Type", "").split(";")[0] != "application/json":
+            raise ValueError("Expected a JSON request.")
+        value = json.loads(
+            self._body(MAX_JSON),
+            object_pairs_hook=pairs,
+            parse_constant=lambda _: (_ for _ in ()).throw(
+                ValueError("Invalid JSON number.")
+            ),
+        )
+        if not isinstance(value, dict):
+            raise ValueError("Expected a JSON object.")
+        return value
+
+    def do_OPTIONS(self) -> None:
+        self._json({"error": "Cross-origin requests are not enabled."}, 403)
+
+    def do_GET(self) -> None:
+        if not self._allowed():
+            return
+        try:
+            self._get()
+        except KeyError:
+            self._json(
+                {"error": "That project, document, or conversation was not found."}, 404
+            )
+        except (ValueError, UnicodeError, RecursionError):
+            self._json({"error": "Invalid request."}, 400)
+        except (OSError, sqlite3.Error):
+            self._json(
+                {"error": "The local workspace could not read this resource."}, 500
+            )
+
+    def _get(self) -> None:
+        url = urlsplit(self.path)
+        path = unquote(url.path)
+        query = parse_qs(url.query)
+        store = self.server.store
+        if path == "/api/health":
+            state = model.health()
+            self._json(
+                {
+                    "ok": True,
+                    "model": state,
+                    "mode": "local_ai" if state["available"] else "source_only",
+                }
+            )
+        elif path == "/api/projects":
+            self._json({"projects": store.list_projects()})
+        elif match := re.fullmatch(
+            r"/api/projects/([^/]+)/tables/([^/]+)/export", path
+        ):
+            record = evidence.get_table(store, match[1], match[2])
+            self._send(
+                evidence.export_csv(record).encode("utf-8"),
+                "text/csv; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="evidence-table.csv"'
+                },
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables/([^/]+)", path):
+            self._json({"table": evidence.get_table(store, match[1], match[2])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/candidates", path):
+            self._json({"candidates": research.candidates(store, match[1])})
+        elif match := re.fullmatch(
+            r"/api/projects/([^/]+)/reports/([^/]+)/export", path
+        ):
+            record = research.get_report(store, match[1], match[2])
+            html = query.get("format", ["md"])[0] == "html"
+            report = (
+                research.html_report(record)
+                if html
+                else research.markdown_report(record)
+            )
+            suffix = "html" if html else "md"
+            self._send(
+                report.encode("utf-8"),
+                "text/html; charset=utf-8" if html else "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": (
+                        f'attachment; filename="research-report.{suffix}"'
+                    )
+                },
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/([^/]+)", path):
+            self._json({"report": research.get_report(store, match[1], match[2])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports", path):
+            self._json({"reports": research.list_reports(store, match[1])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
+            self._json({"tables": evidence.list_tables(store, match[1])})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/brief", path):
+            brief = research_brief(store.project_detail(match[1]))
+            self._send(
+                brief.encode("utf-8"),
+                "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="research-brief.md"'
+                },
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/search", path):
+            question = text(query.get("q", [""])[0])
+            results, retrieval_mode = self.server.search(
+                match[1], question, query.get("document_id", [None])[0]
+            )
+            self._json({"results": results, "retrieval_mode": retrieval_mode})
+        elif match := re.fullmatch(r"/api/projects/([^/]+)", path):
+            self._json(store.project_detail(match[1]))
+        elif match := re.fullmatch(r"/api/documents/([^/]+)/pages", path):
+            page = int(query.get("page", ["1"])[0])
+            self._json(store.get_page(match[1], page))
+        elif match := re.fullmatch(r"/api/documents/([^/]+)/file", path):
+            document = store.get_document(match[1])
+            self._send(
+                document["raw"],
+                {
+                    "pdf": "application/pdf",
+                    "docx": (
+                        "application/vnd.openxmlformats-officedocument."
+                        "wordprocessingml.document"
+                    ),
+                    "txt": "text/plain; charset=utf-8",
+                    "md": "text/markdown; charset=utf-8",
+                }[document["format"]],
+                headers={
+                    "Content-Disposition": (
+                        "inline" if document["format"] == "pdf" else "attachment"
+                    )
+                    + "; filename*=UTF-8''"
+                    + quote(document["name"], safe="")
+                },
+            )
+        elif match := re.fullmatch(r"/api/conversations/([^/]+)/export", path):
+            report = conversation_record(store.get_conversation(match[1]))
+            self._send(
+                report.encode("utf-8"),
+                "text/markdown; charset=utf-8",
+                headers={
+                    "Content-Disposition": 'attachment; filename="conversation.md"'
+                },
+            )
+        elif match := re.fullmatch(r"/api/conversations/([^/]+)", path):
+            self._json(store.get_conversation(match[1]))
+        elif path.startswith("/api/"):
+            self._json({"error": "Unknown API route."}, 404)
+        else:
+            target = (STATIC / (path.lstrip("/") or "index.html")).resolve()
+            if not target.is_relative_to(STATIC.resolve()) or not target.is_file():
+                self._json({"error": "Page not found."}, 404)
+                return
+            self._send(
+                target.read_bytes(),
+                mimetypes.guess_type(target)[0] or "application/octet-stream",
+            )
+
+    def do_POST(self) -> None:
+        if not self._allowed(write=True):
+            return
+        try:
+            self._post()
+        except KeyError:
+            self._json(
+                {"error": "That project, document, or conversation was not found."}, 404
+            )
+        except OverflowError as exc:
+            self._json({"error": str(exc)}, 413)
+        except (ValueError, UnicodeError, RecursionError) as exc:
+            self._json({"error": str(exc)[:500] or "Invalid request."}, 400)
+        except (OSError, sqlite3.Error):
+            self._json(
+                {
+                    "error": "The local workspace could not complete this action. "
+                    "Your saved data is retained."
+                },
+                500,
+            )
+
+    def _post(self) -> None:
+        path = unquote(urlsplit(self.path).path)
+        store = self.server.store
+        if path == "/api/projects":
+            data = self._data()
+            self._json(
+                {
+                    "project": store.create_project(
+                        text(data.get("name"), 80),
+                        data.get("description", ""),
+                    )
+                },
+                201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/documents", path):
+            if self.headers.get("Content-Type", "").split(";")[0] not in {
+                "application/pdf",
+                "application/octet-stream",
+                "text/plain",
+                "text/markdown",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            }:
+                raise ValueError("Choose a PDF, Word, Markdown, or plain-text file.")
+            if not self.server.upload_lock.acquire(blocking=False):
+                self._json(
+                    {"error": "Another document is being indexed. Please wait."}, 503
+                )
+                return
+            try:
+                name = text(
+                    unquote(self.headers.get("X-Filename", "document.pdf")), 180
+                )
+                raw = self._body(MAX_UPLOAD)
+                self._json({"document": store.add_document(match[1], name, raw)}, 201)
+            finally:
+                self.server.upload_lock.release()
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/conversations", path):
+            data = self._data()
+            self._json(
+                {
+                    "conversation": store.create_conversation(
+                        match[1], text(data.get("title", "New conversation"), 120)
+                    )
+                },
+                201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports", path):
+            data = self._data()
+            self._json(
+                {
+                    "report": research.create_report(
+                        store, match[1], data.get("title"), data.get("selected")
+                    )
+                },
+                201,
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/reports/([^/]+)", path):
+            self._json(
+                {
+                    "report": research.update_report(
+                        store, match[1], match[2], self._data()
+                    )
+                }
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables", path):
+            data = self._data()
+            if not self.server.evidence_lock.acquire(blocking=False):
+                self._json(
+                    {"error": "Another evidence table is being built. Please wait."},
+                    503,
+                )
+                return
+            try:
+                self._json(
+                    {
+                        "table": evidence.create_table(
+                            store,
+                            match[1],
+                            data.get("title"),
+                            data.get("document_ids"),
+                            data.get("questions"),
+                        )
+                    },
+                    201,
+                )
+            finally:
+                self.server.evidence_lock.release()
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/tables/([^/]+)/cell", path):
+            data = self._data()
+            self._json(
+                {
+                    "table": evidence.update_cell(
+                        store,
+                        match[1],
+                        match[2],
+                        data.get("document_id"),
+                        data.get("column"),
+                        data.get("finding"),
+                        data.get("review"),
+                        data.get("revision"),
+                    )
+                }
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/notes/([^/]+)", path):
+            data = self._data()
+            self._json(
+                {
+                    "note": store.update_note(
+                        match[1],
+                        match[2],
+                        text(data.get("text"), 10000),
+                        data.get("expected_text"),
+                    )
+                }
+            )
+        elif match := re.fullmatch(r"/api/projects/([^/]+)/notes", path):
+            data = self._data()
+            self._json(
+                {
+                    "note": store.add_note(
+                        match[1],
+                        text(data.get("text"), 10000),
+                        data.get("document_id"),
+                        data.get("page"),
+                    )
+                },
+                201,
+            )
+        elif match := re.fullmatch(r"/api/conversations/([^/]+)/messages", path):
+            data = self._data()
+            question = text(data.get("text"))
+            thread = store.get_conversation(match[1])
+            conversation = thread["conversation"]
+            if not self.server.chat_lock.acquire(blocking=False):
+                self._json(
+                    {"error": "An answer is already being prepared. Please wait."}, 503
+                )
+                return
+            try:
+                sources, retrieval_mode = self.server.search(
+                    conversation["project_id"],
+                    question,
+                    document_id=data.get("document_id"),
+                    limit=4,
+                )
+                content, mode = model.answer(
+                    question, sources, history=thread["messages"]
+                )
+                user = store.add_message(match[1], "user", question, [], None)
+                assistant = store.add_message(
+                    match[1], "assistant", content, sources, mode
+                )
+                self._json(
+                    {"messages": [user, assistant], "retrieval_mode": retrieval_mode}
+                )
+            finally:
+                self.server.chat_lock.release()
+        else:
+            self._json({"error": "Unknown API route."}, 404)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port", type=int, default=8766)
+    parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument(
+        "--semantic-search",
+        action="store_true",
+        help="Enable experimental local embedding retrieval",
+    )
+    args = parser.parse_args()
+    application = Application(
+        ("127.0.0.1", args.port), args.data_dir, args.semantic_search
+    )
+    print(
+        f"OpenForge document workspace: http://127.0.0.1:{application.server_port}",
+        flush=True,
+    )
+    try:
+        application.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        application.server_close()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,109 @@
+{
+  "description": "Held-out original document answer diagnostic; small English excerpts, not end-to-end PDF retrieval.",
+  "documents": {
+    "museum": {
+      "document_name": "museum.pdf",
+      "page": 1,
+      "text": "The museum closes at 18:15 on Saturdays. Admission costs 12 euros."
+    },
+    "garden": {
+      "document_name": "garden.pdf",
+      "page": 1,
+      "text": "Water the seedlings every three days. Use sandy soil."
+    },
+    "lab": {
+      "document_name": "lab.pdf",
+      "page": 1,
+      "text": "Specimens must be stored at four degrees Celsius. Transport takes 90 minutes."
+    },
+    "library": {
+      "document_name": "library.pdf",
+      "page": 1,
+      "text": "Books may be borrowed for 21 days. Renewals are limited to one."
+    },
+    "bus": {
+      "document_name": "bus.pdf",
+      "page": 1,
+      "text": "The bus leaves at 08:20. Tickets cost six dollars."
+    },
+    "club": {
+      "document_name": "club.pdf",
+      "page": 1,
+      "text": "Mira coordinates weekly meetings. Sessions take place on Thursdays."
+    }
+  },
+  "cases": [
+    {
+      "id": "museum",
+      "question": "What time does the museum close on Saturday?",
+      "source_ids": [
+        "museum"
+      ],
+      "facts": [
+        [
+          "18:15"
+        ]
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "garden",
+      "question": "How often should seedlings be watered?",
+      "source_ids": [
+        "garden"
+      ],
+      "facts": [
+        [
+          "three",
+          "3"
+        ]
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "lab",
+      "question": "At what temperature should specimens be stored?",
+      "source_ids": [
+        "lab"
+      ],
+      "facts": [
+        [
+          "four",
+          "4"
+        ]
+      ],
+      "expected": "supported"
+    },
+    {
+      "id": "library",
+      "question": "What is the overdue fine?",
+      "source_ids": [
+        "library"
+      ],
+      "facts": [],
+      "expected": "abstain"
+    },
+    {
+      "id": "bus",
+      "question": "When does the bus arrive?",
+      "source_ids": [
+        "bus"
+      ],
+      "facts": [],
+      "expected": "abstain"
+    },
+    {
+      "id": "club",
+      "question": "Who coordinates the meetings?",
+      "source_ids": [
+        "club"
+      ],
+      "facts": [
+        [
+          "Mira"
+        ]
+      ],
+      "expected": "supported"
+    }
+  ]
+}

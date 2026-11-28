@@ -1,0 +1,20 @@
+name: Document workspace frontend
+on:
+  push:
+    paths: ['tests/web/**', 'apps/document_workspace/**', '.github/workflows/document-workspace.yml']
+  pull_request:
+    paths: ['tests/web/**', 'apps/document_workspace/**', '.github/workflows/document-workspace.yml']
+permissions:
+  contents: read
+jobs:
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check apps/document_workspace/static/app.mjs
+      - run: node --check apps/document_workspace/static/evidence-tables.mjs
+      - run: node --check apps/document_workspace/static/research-reports.mjs
+      - run: node --test tests/web/*.test.mjs
