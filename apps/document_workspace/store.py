@@ -16,7 +16,8 @@ from typing import Any, cast
 from .extractor import MAX_PDF_BYTES, extract_document
 from .retrieval import query_groups, rank_passages
 
-MAX_STORAGE = 200 * 1024 * 1024  # Uploaded document bytes, not physical SQLite disk usage.
+# Uploaded document bytes, not physical SQLite disk usage.
+MAX_STORAGE = 200 * 1024 * 1024
 MAX_DOCUMENTS = 200
 MAX_INDEXED_CHARS = 20_000_000
 DOC_COLUMNS = "id,project_id,name,pages,bytes,sha256,created_at"
